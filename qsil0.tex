@@ -1,0 +1,604 @@
+\documentclass{article}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+\usepackage[utf8]{inputenc}
+\usepackage[UTF8]{ctex}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+\usetikzlibrary{calc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xeCJK}
+\usepackage{CJKutf8}
+\setCJKmainfont{Noto Serif CJK TC}    % 思源宋體繁體版（推薦）
+\setCJKsansfont{Microsoft JhengHei}   % 微軟正黑體
+\setCJKmonofont{Noto Sans Mono CJK TC}
+% \setCJKmainfont{WenQuanYi Zen Hei}
+% % 或者使用其他可用字體：
+% % \setCJKmainfont{AR PL Mingti2L Big5}
+% % \setCJKmainfont{Noto Sans CJK TC}
+
+% % 設置全形符號支持
+% \setCJKsansfont{WenQuanYi Zen Hei}
+% \setCJKmonofont{WenQuanYi Zen Hei}
+
+\title{Self-Injection-Locked (SIL) Oscillator Analysis}
+\author{carlos ma}
+\date{\today}
+\usepackage[margin=1in]{geometry}
+% \usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage{caption}
+\begin{document}
+\maketitle
+\section*{訊號合成與還原分析}
+
+假設原始基帶訊號為
+\[
+\mathbf{x}(t)=
+\begin{bmatrix}
+I(t)\\[4pt]
+Q(t)
+\end{bmatrix}.
+\]
+
+經過 Hartley 式的 $+90^{\circ}$ 相移後，將 $Q$ 分量與 $I$ 疊加，可表示為
+\[
+y(t)=a\,I(t)+b\,Q(t),
+\]
+其中 $a,b$ 為常數或頻率相關的相位運算子。  
+若 $I(t)=\cos\omega t,\ Q(t)=\sin\omega t$，則
+\[
+y(t)=I(t)+Q_{+\!90^{\circ}}(t)
+= \cos\omega t + \cos\omega t
+= 2\cos\omega t.
+\]
+此時原本兩個自由度被壓縮成單一標量，資訊已經遺失。
+
+\subsection*{可逆條件}
+將系統視為線性映射
+\[
+\mathbf{y}(t)=\mathbf{A}\,\mathbf{x}(t),
+\]
+其中 $\mathbf{y}(t)\in\mathbb{R}^{m}$，$\mathbf{x}(t)\in\mathbb{R}^{2}$。  
+若只有一個輸出 ($m=1$)，則無法從 $y(t)$ 唯一決定 $I(t),Q(t)$。  
+若有兩個線性獨立的觀測：
+\[
+\begin{bmatrix}y_1\\y_2\end{bmatrix}
+=\mathbf{A}\,
+\begin{bmatrix}I\\Q\end{bmatrix},
+\qquad
+\mathbf{A}\in\mathbb{R}^{2\times 2},
+\]
+且 $\det(\mathbf{A})\neq 0$，則可以求逆：
+\[
+\begin{bmatrix}I\\Q\end{bmatrix}
+=\mathbf{A}^{-1}
+\begin{bmatrix}y_1\\y_2\end{bmatrix}.
+\]
+
+\subsection*{Hartley 雙觀測特例}
+若有
+\[
+y_1=I+Q_{+90^{\circ}}, \qquad
+y_2=I+Q_{-90^{\circ}},
+\]
+可寫成矩陣：
+\[
+\begin{bmatrix}y_1\\y_2\end{bmatrix}
+=
+\begin{bmatrix}
+1 & h_{+}\\[4pt]
+1 & h_{-}
+\end{bmatrix}
+\begin{bmatrix}I\\Q\end{bmatrix},
+\]
+其中 $h_{\pm}$ 為 $Q$ 通道相移的係數。若 $h_{+}\neq h_{-}$，矩陣可逆，反解為
+\[
+\begin{bmatrix}I\\Q\end{bmatrix}
+=\frac{1}{h_{-}-h_{+}}
+\begin{bmatrix}
+h_{-} & -h_{+}\\[4pt]
+-1 & 1
+\end{bmatrix}
+\begin{bmatrix}y_1\\y_2\end{bmatrix}.
+\]
+
+\subsection*{結論}
+若僅有單一路輸出 $y(t)=I(t)+Q_{+\!90^{\circ}}(t)$，一般情況下無法還原 $I(t),Q(t)$。  
+要還原必須：
+\begin{itemize}
+\item 取得第二個線性獨立的觀測 $y_2(t)$，並做矩陣反演；或
+\item 具備先驗資訊（例如已知 $I,Q$ 關係、訓練序列、稀疏假設），利用參數估計或盲分離。
+\end{itemize}
+
+
+\begin{tikzpicture}[node distance=12mm, auto, >=Stealth]
+
+  % Nodes
+  \node (I)      [draw, rectangle] {I(t)};
+  \node (Q)      [draw, rectangle, right=10mm of I] {Q(t)};
+  \node (phase)  [draw, rectangle, right=10mm of Q] {+90$^\circ$ (Hartley)};
+  \node (sum)    [draw, circle, right=18mm of phase] {+};
+  \node (y1)     [draw, rectangle, right=18mm of sum] {y$_1$(t) = I + Q$_{+90^\circ}$};
+
+  % Optional second branch for invertibility
+  \node (phase2) [draw, rectangle, below=10mm of phase] {-90$^\circ$};
+  \node (sum2)   [draw, circle, right=18mm of phase2] {+};
+  \node (y2)     [draw, rectangle, right=18mm of sum2] {y$_2$(t) = I + Q$_{-90^\circ}$};
+
+  % Inverse block (when A invertible)
+  \node (inv)    [draw, rectangle, below=18mm of y1, minimum width=60mm] {Matrix inversion / digital demix: $\begin{bmatrix}I\\Q\end{bmatrix} = \mathbf{A}^{-1}\begin{bmatrix}y_1\\y_2\end{bmatrix}$};
+
+  % Connections
+  \draw[->] (I) -- (sum) node[midway, above] {};
+  \draw[->] (Q) -- (phase);
+  \draw[->] (phase) -- (sum);
+  \draw[->] (sum) -- (y1);
+
+  % second branch
+  \draw[->] (I) |- (phase2);
+  \draw[->] (Q) -- (phase2);
+  \draw[->] (phase2) -- (sum2);
+  \draw[->] (sum2) -- (y2);
+
+  % arrows to inverter
+  \draw[->] (y1) -- (inv.north west) node[midway, left] {};
+  \draw[->] (y2) -- (inv.north east) node[midway, right] {};
+
+  % captions
+  \node[below=2mm of I, font=\footnotesize] {原始兩路};
+  \node[below=2mm of y1, font=\footnotesize] {單一路合成（不可逆）};
+  \node[below=2mm of inv, font=\footnotesize] {有兩個獨立觀測時可逆};
+
+\end{tikzpicture}
+\section*{天線間距至少需為半波長的原因}
+
+考慮兩個接收天線，接收窄頻訊號
+\[
+s(t) = e^{j 2 \pi f_c t}
+\]
+入射角為 $\theta$，兩天線接收訊號之相位差為
+\[
+\Delta \phi = \frac{2 \pi d \sin \theta}{\lambda}
+\]
+其中 $d$ 為天線間距，$\lambda$ 為波長。
+
+由於相位是模 $2\pi$ 的量，若
+\[
+\frac{2 \pi d \sin \theta}{\lambda} > 2\pi
+\]
+則會發生空間混疊 (spatial aliasing)，不同角度對應到相同相位差。為避免此現象，必須滿足
+\[
+\frac{2 \pi d \sin \theta}{\lambda} \leq \pi
+\quad \Rightarrow \quad
+d \leq \frac{\lambda}{2}
+\]
+
+因此天線間距必須小於或等於半波長，才能唯一地由相位差解出入射角，避免角度模糊與假波瓣 (grating lobes)。
+
+---
+
+\section*{收發天線間隔至少需為半波長的原因}
+
+對於同時收發的系統，若發射天線與接收天線間距太近，則會產生強烈的近場耦合，使得接收端前級放大器 (LNA) 飽和，無法接收遠端回波。其互耦阻抗近似為
+\[
+Z_{12} \propto \frac{e^{-j k d}}{d},
+\quad k = \frac{2\pi}{\lambda}
+\]
+當 $d = \lambda/2$ 時，相位差為 $\pi$，互耦效應減小，可提高發射與接收的隔離度。
+
+實務上，設計天線間距為 $\lambda/2$ 是一個常見折衷：既能降低自干擾，又不致讓天線系統過大，並可維持方向圖一致性。
+
+\section*{頻率鍵控調變 (FSK)}
+
+頻率鍵控 (Frequency-Shift Keying, FSK) 是一種數位調變方式，
+以不同的載波頻率表示不同的比特值。
+對於二進位 FSK (BFSK)，傳輸訊號可表示為：
+\[
+s(t) =
+\begin{cases}
+A \cos(2 \pi f_0 t), & \text{比特值為 0} \\[6pt]
+A \cos(2 \pi f_1 t), & \text{比特值為 1}
+\end{cases}
+\]
+
+其中 $f_0$ 與 $f_1$ 分別為兩個載波頻率，且頻率間隔定義為
+$\Delta f = |f_1 - f_0|$。
+
+更一般化的表示法可寫成
+\[
+s(t) = A \cos \!\Bigg(
+2\pi f_c t + 2\pi \Delta f \!\!\int_{-\infty}^{t} m(\tau) d\tau
+\Bigg)
+\]
+其中 $f_c = \frac{f_0+f_1}{2}$ 為中心頻率，
+$m(t) \in \{-1,+1\}$ 為數位訊號。
+由此可見 FSK 實際上改變的是瞬時頻率，
+因此屬於連續相位調變 (Continuous-Phase Modulation, CPM) 的一種。
+
+FSK 頻譜具有兩個主要能量集中區域，對應 $f_0$ 與 $f_1$。
+接收端可透過兩個匹配濾波器或能量檢測器，分別量測對應頻率的能量，
+並選擇較大者作為輸出比特。
+
+\begin{tikzpicture}
+\noindent
+% ========================
+% 時域波形
+% ========================
+\draw[->] (0,0) -- (8,0) node[right]{時間 $t$};
+\draw[->] (0,-1.5) -- (0,1.5) node[above]{訊號 $s(t)$};
+
+% Bit intervals
+\foreach \x in {0,2,4,6} {
+  \draw[dashed,gray] (\x,-1.5) -- (\x,1.5);
+}
+
+% Label bits
+\node at (1,1.3) {比特 1};
+\node at (3,1.3) {比特 0};
+\node at (5,1.3) {比特 1};
+\node at (7,1.3) {比特 1};
+
+% Draw waveform (approximation: sine waves with different frequencies)
+\draw[domain=0:2,smooth,variable=\t,samples=50] plot ({\t},{sin(720*\t)});
+\draw[domain=2:4,smooth,variable=\t,samples=50] plot ({\t},{sin(360*\t)});
+\draw[domain=4:6,smooth,variable=\t,samples=50] plot ({\t},{sin(720*\t)});
+\draw[domain=6:8,smooth,variable=\t,samples=50] plot ({\t},{sin(720*\t)});
+
+% ========================
+% 頻譜
+% ========================
+\begin{scope}[shift={(0,-4)}]
+\draw[->] (0,0) -- (8,0) node[right]{頻率 $f$};
+\draw[->] (0,0) -- (0,2) node[above]{功率};
+
+% Center frequency line
+\draw[dashed,gray] (4,0) -- (4,2);
+\node[gray] at (4,-0.3) {$f_c$};
+
+% Two spectral lines
+\draw[thick,blue] (2,0) -- (2,1.5);
+\draw[thick,blue] (6,0) -- (6,1.5);
+
+\node at (2,-0.3) {$f_0$};
+\node at (6,-0.3) {$f_1$};
+\end{scope}
+
+\end{tikzpicture}
+\section*{頻率調變連續波雷達 (FMCW)}
+
+FMCW 雷達傳送頻率隨時間變化的連續波，常見為線性掃頻訊號：
+\[
+s_\text{tx}(t) = A \cos\!\Bigg(
+2\pi \Big[f_c t + \frac{B}{2T} t^2 \Big]
+\Bigg), \qquad 0 \leq t < T
+\]
+其中 $f_c$ 為起始頻率，$B$ 為掃頻頻寬，$T$ 為掃頻週期，掃頻斜率定義為
+$k = \frac{B}{T}$。
+
+若目標距離為 $R$，回波延遲時間為
+\[
+\tau = \frac{2R}{c}
+\]
+接收訊號為
+\[
+s_\text{rx}(t) = A_r \cos\!\Bigg(
+2\pi \Big[f_c (t-\tau) + \frac{B}{2T} (t-\tau)^2 \Big]
+\Bigg)
+\]
+
+發射與接收訊號混頻後，通過低通濾波器，可得到拍頻訊號
+\[
+s_\text{beat}(t) \approx \cos(2\pi f_b t + \phi_0),
+\qquad
+f_b = k \tau = \frac{B}{T} \cdot \frac{2R}{c}
+\]
+因此可由拍頻頻率計算距離：
+\[
+R = \frac{c f_b T}{2B}
+\]
+
+若目標有徑向速度 $v$，還會產生多普勒頻移
+\[
+f_D = \frac{2v}{\lambda}
+\]
+拍頻中同時含有距離與速度資訊，需利用多個 chirp 並進行二維 FFT (range-Doppler map) 來分離。
+\begin{tikzpicture}[scale=1.0]
+
+% ========================
+% Transmit signal (chirp)
+% ========================
+\node at (-0.5,2.3) {\textbf{Tx Chirp}};
+\draw[->] (0,2) -- (8,2) node[right]{$t$};
+\draw[->] (0,2) -- (0,3.5) node[above]{頻率 $f(t)$};
+
+\draw[thick,blue] (0,2.2) -- (2.5,3.2);
+\draw[thick,blue] (2.5,2.2) -- (5,3.2);
+\draw[thick,blue] (5,2.2) -- (7.5,3.2);
+\draw[dashed] (0,2.2) -- (0,1.8);
+\draw[dashed] (2.5,3.2) -- (2.5,1.8);
+\node[below] at (1.25,1.8) {掃頻週期 $T$};
+
+% ========================
+% Receive signal (delayed)
+% ========================
+\node at (-0.5,0.9) {\textbf{Rx (Delayed)}};
+\draw[->] (0,0.5) -- (8,0.5) node[right]{$t$};
+\draw[->] (0,0.5) -- (0,1.5) node[above]{頻率 $f(t-\tau)$};
+
+\draw[thick,red] (0.5,0.7) -- (3,1.7);
+\draw[thick,red] (3,0.7) -- (5.5,1.7);
+\draw[thick,red] (5.5,0.7) -- (8,1.7);
+
+\draw[dashed] (0.5,0.7) -- (0.5,0.3);
+\node[below] at (0.5,0.3) {$\tau$};
+
+% ========================
+% Beat signal (manual sine-like curve)
+% ========================
+\node at (-0.5,-0.8) {\textbf{Beat Signal}};
+\draw[->] (0,-1.2) -- (8,-1.2) node[right]{$t$};
+\draw[->] (0,-1.2) -- (0,0) node[above]{幅度};
+
+% draw a few cycles manually
+\draw[thick,green]
+  plot[smooth] coordinates {(0,-1.0) (0.5,-0.6) (1.0,-1.0) (1.5,-1.4) (2.0,-1.0)
+                           (2.5,-0.6) (3.0,-1.0) (3.5,-1.4) (4.0,-1.0)
+                           (4.5,-0.6) (5.0,-1.0) (5.5,-1.4) (6.0,-1.0)
+                           (6.5,-0.6) (7.0,-1.0) (7.5,-1.4) (8.0,-1.0)};
+\node[right,green] at (8,-0.6) {$f_b = k \tau$};
+
+\end{tikzpicture}
+
+\begin{tikzpicture}[scale=1.0]
+
+% ========================
+% 1. Transmit signal (chirp)
+% ========================
+\node at (-0.5,2.3) {\textbf{Tx Chirp}};
+\draw[->] (0,2) -- (8,2) node[right]{$t$};
+\draw[->] (0,2) -- (0,3.5) node[above]{頻率 $f(t)$};
+
+\draw[thick,blue] (0,2.2) -- (2.5,3.2);
+\draw[thick,blue] (2.5,2.2) -- (5,3.2);
+\draw[thick,blue] (5,2.2) -- (7.5,3.2);
+\draw[dashed] (0,2.2) -- (0,1.8);
+\draw[dashed] (2.5,3.2) -- (2.5,1.8);
+\node[below] at (1.25,1.8) {掃頻週期 $T$};
+
+% ========================
+% 2. Receive signal (delayed)
+% ========================
+\node at (-0.5,0.9) {\textbf{Rx (Delayed)}};
+\draw[->] (0,0.5) -- (8,0.5) node[right]{$t$};
+\draw[->] (0,0.5) -- (0,1.5) node[above]{頻率 $f(t-\tau)$};
+
+\draw[thick,red] (0.5,0.7) -- (3,1.7);
+\draw[thick,red] (3,0.7) -- (5.5,1.7);
+\draw[thick,red] (5.5,0.7) -- (8,1.7);
+
+\draw[dashed] (0.5,0.7) -- (0.5,0.3);
+\node[below] at (0.5,0.3) {$\tau = \frac{2R}{c}$};
+
+% ========================
+% 3. Beat signal
+% ========================
+\node at (-0.5,-0.8) {\textbf{Beat Signal}};
+\draw[->] (0,-1.2) -- (8,-1.2) node[right]{$t$};
+\draw[->] (0,-1.2) -- (0,0) node[above]{幅度};
+
+\draw[thick,green]
+  plot[smooth] coordinates {(0,-1.0) (0.5,-0.6) (1.0,-1.0) (1.5,-1.4) (2.0,-1.0)
+                           (2.5,-0.6) (3.0,-1.0) (3.5,-1.4) (4.0,-1.0)
+                           (4.5,-0.6) (5.0,-1.0) (5.5,-1.4) (6.0,-1.0)
+                           (6.5,-0.6) (7.0,-1.0) (7.5,-1.4) (8.0,-1.0)};
+\node[right,green] at (8,-0.6) {$f_b = k \tau$};
+\end{tikzpicture}
+\vspace{1cm}  % Add vertical space
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0]
+% ========================
+% 4. Range-Doppler Map
+% ========================
+\begin{scope}[shift={(9,0)}]
+\node at (2.5,4.2) {\textbf{Range-Doppler Map}};  % Move from 3.5 to 4.2
+\draw[->] (0,0) -- (5,0) node[right]{Range};
+\draw[->] (0,0) -- (0,3) node[above]{Doppler (速度)};
+
+% Draw grid
+\draw[step=1cm,gray!30,very thin] (0,0) grid (5,3);
+
+% Mark some targets
+\filldraw[blue] (1,1) circle (3pt) node[right]{慢速近距離目標};
+\filldraw[red] (3,2.5) circle (3pt) node[right]{高速遠距離目標};
+\filldraw[green!70!black] (4,0.5) circle (3pt) node[right]{中速遠距離目標};
+
+\end{scope}
+
+\end{tikzpicture}
+\end{center}
+假設發射端 $I$ 通道頻率為 $\omega_{IF}$，振幅為 $A_{Tx}$，相位雜訊為 $\phi_n$：
+
+\begin{equation}
+S_{Tx,I,IF}(t) = A_{Tx}\cos\!\big(\omega_{IF}t + \phi_n(t)\big)
+\tag{2.37}
+\end{equation}
+
+接收端帶有目標物體的移動資訊的回波訊號在經過混頻器降頻後為：
+
+\begin{equation}
+S_{Rx,IF}(t) \approx A_{Rx} \cos\!\left(\omega_{IF}t - \left(\frac{4\pi R}{\lambda} + \frac{4\pi x(t)}{\lambda}\right) + \phi_n\!\left(t - \frac{2R}{c}\right)\right)
+\tag{2.38}
+\end{equation}
+
+其中 $A_{Rx}$ 為接收訊號振幅，$R$ 為目標物體與雷達間的距離，$x(t)$ 為目標物體的位移資訊，$\lambda$ 為載波波長，$c$ 為光速。
+\section*{Hamming Window}
+
+A \textbf{Hamming window} is a type of window function commonly used in digital signal processing (DSP) to reduce \textit{spectral leakage} when performing the Fast Fourier Transform (FFT) of a signal.
+
+\section*{1. What It Does}
+
+When you take an FFT of a finite-length signal, you are implicitly multiplying the signal by a \textbf{rectangular window} (simply truncating it at the start and end).  
+This sharp cutoff introduces discontinuities, which spread energy into other frequencies---a phenomenon called \textbf{spectral leakage}.
+
+A Hamming window tapers the signal smoothly toward zero at the edges, thereby reducing these discontinuities.
+
+\section*{2. Mathematical Definition}
+
+The Hamming window for \(N\) points is defined as:
+
+\[
+w[n] = 0.54 - 0.46 \cos\!\left(\frac{2 \pi n}{N-1}\right),
+\qquad 0 \leq n \leq N-1
+\]
+
+where:
+\begin{itemize}[nosep]
+    \item \(N\): window length (number of samples)
+    \item \(n\): sample index
+\end{itemize}
+
+\section*{3. Shape}
+
+\begin{itemize}[nosep]
+    \item Starts and ends near \(0.08\) (not exactly zero)
+    \item Maximum value is \(1\) at the center
+    \item Smooth bell-like shape
+\end{itemize}
+
+This shape preserves more of the signal amplitude compared to a Hann window while still reducing leakage.
+
+\section*{4. Effect in Frequency Domain}
+
+\begin{itemize}[nosep]
+    \item \textbf{Main lobe:} Slightly wider than a rectangular window, resulting in slightly worse frequency resolution.
+    \item \textbf{Side lobes:} Much lower (about \(-42\ \mathrm{dB}\)), providing much better suppression of leakage from nearby strong frequencies.
+\end{itemize}
+
+\section*{5. When to Use}
+
+Use a Hamming window when:
+\begin{itemize}[nosep]
+    \item You care about amplitude accuracy (it introduces less amplitude distortion than a Hann window).
+    \item You want a good balance between main-lobe width (frequency resolution) and side-lobe suppression (leakage reduction).
+\end{itemize}
+\section{QSIL in Radar Systems}
+
+Quadrature Signal Image Leakage (QSIL) is a critical imperfection in radar receivers that employ I/Q downconversion.  
+It refers to the residual mirror-frequency component caused by gain/phase imbalance in the I/Q channels.
+
+\subsection{Signal Model}
+
+Assume the baseband radar echo can be represented as:
+\[
+r(t) = A e^{j(2\pi f_d t + \phi)}
+\]
+where:
+\begin{itemize}
+    \item \(A\) is the echo amplitude,
+    \item \(f_d\) is the Doppler frequency shift,
+    \item \(\phi\) is the initial phase.
+\end{itemize}
+
+After imperfect I/Q demodulation with gain imbalance \(G_I, G_Q\) and phase error \(\Delta \phi\), the output becomes:
+\[
+y(t) = G_I r_I(t) + G_Q e^{j\Delta \phi} r_Q(t)
+\]
+
+This can be expressed as:
+\[
+y(t) = k_1 r(t) + k_2 r^*(t)
+\]
+
+where \(k_2 r^*(t)\) is the image component at frequency \(-f_d\).
+
+\subsection{Impact on Radar Processing}
+
+\begin{itemize}
+    \item \textbf{Ghost Targets:} Image components create symmetric false targets at \(-f_d\).
+    \item \textbf{Sensitivity Loss:} Residual image power raises the noise floor, reducing SNR.
+    \item \textbf{Velocity Ambiguity:} In FMCW or CW radar, poor image rejection may cause wrong direction of velocity estimation.
+\end{itemize}
+
+\subsection{Image Rejection Ratio (IRR)}
+
+QSIL is usually quantified by the Image Rejection Ratio (IRR):
+\[
+\mathrm{IRR} = 10 \log_{10} \!\left( \frac{P_{+f_d}}{P_{-f_d}} \right) \quad [\mathrm{dB}]
+\]
+
+Typical requirements:
+\begin{itemize}
+    \item Commercial radar: \( \mathrm{IRR} \geq 30 \ \mathrm{dB} \)
+    \item High-performance radar: \( \mathrm{IRR} \geq 40 \sim 50 \ \mathrm{dB} \)
+\end{itemize}
+
+\subsection{Compensation Methods}
+
+\begin{itemize}
+    \item Hardware calibration of I/Q mixer gain and phase.
+    \item Digital compensation (e.g., adaptive filtering, MMSE-based correction).
+    \item High-accuracy quadrature LO generation.
+\end{itemize}
+\section{Quadrature Self-Signal Injection (QSSI)}
+
+Quadrature Self-Signal Injection (QSSI) refers to the leakage of the local oscillator (LO) or transmit signal 
+into the receiver path. In radar systems, this leakage is downconverted by the mixer and appears 
+as a \textbf{DC component} in baseband, creating a false target at zero range.
+
+\subsection{Signal Model}
+
+Let the LO signal be:
+\[
+s_\mathrm{LO}(t) = A_\mathrm{LO} e^{j\omega_\mathrm{LO} t}
+\]
+
+If a fraction \(k\) of this signal couples into the receiver input, the leakage signal becomes:
+\[
+s_\mathrm{leak}(t) = k A_\mathrm{LO} e^{j\omega_\mathrm{LO} t}
+\]
+
+After mixing with the LO, the baseband result is:
+\[
+y_\mathrm{DC} = k A_\mathrm{LO} \cdot A_\mathrm{LO}^* = k |A_\mathrm{LO}|^2
+\]
+
+which is a constant DC term corresponding to a zero-range ghost target.
+
+\subsection{Impact on Radar Systems}
+
+\begin{itemize}
+    \item \textbf{False Targets:} A strong peak appears at zero range in the range profile or range-Doppler map.
+    \item \textbf{Dynamic Range Reduction:} The DC offset may saturate the ADC, masking weak echoes.
+    \item \textbf{Baseline Drift:} LO phase noise or temperature drift may cause slow variations of this offset.
+\end{itemize}
+
+\subsection{Mitigation Techniques}
+
+\begin{itemize}
+    \item Improve hardware isolation (antenna separation, Tx/Rx switch, circulator performance).
+    \item Apply DC-offset cancellation in the analog or digital domain.
+    \item Subtract a background measurement taken without targets (background calibration).
+\end{itemize}
+
+\subsection{Comparison with QSIL}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Name} & \textbf{Cause} & \textbf{Frequency Location} & \textbf{Effect} \\
+\hline
+QSIL & I/Q gain/phase imbalance & Image frequency (\(-f_d\)) & Symmetric ghost targets, degraded IRR \\
+\hline
+QSSI & LO or Tx leakage & DC (0 Hz) & Zero-range ghost target, elevated noise floor \\
+\hline
+\end{tabular}
+\end{table}
+
+\end{document}

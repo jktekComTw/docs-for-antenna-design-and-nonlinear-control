@@ -1,0 +1,30 @@
+\BOOKMARK [1][-]{section.1}{VLAN 基本概念}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{定義}{section.1}% 2
+\BOOKMARK [2][-]{subsection.1.2}{技術特點}{section.1}% 3
+\BOOKMARK [1][-]{section.2}{交換器設定}{}% 4
+\BOOKMARK [2][-]{subsection.2.1}{Cisco 交換器設定}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.2}{HP/Aruba 交換器設定}{section.2}% 6
+\BOOKMARK [1][-]{section.3}{Linux 系統 VLAN 設定}{}% 7
+\BOOKMARK [2][-]{subsection.3.1}{使用 ip 指令}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.2}{使用 vconfig \(舊方法\)}{section.3}% 9
+\BOOKMARK [1][-]{section.4}{網路介面設定檔}{}% 10
+\BOOKMARK [2][-]{subsection.4.1}{Ubuntu/Debian Netplan 設定}{section.4}% 11
+\BOOKMARK [2][-]{subsection.4.2}{CentOS/RHEL 設定}{section.4}% 12
+\BOOKMARK [1][-]{section.5}{網路架構範例}{}% 13
+\BOOKMARK [2][-]{subsection.5.1}{典型架構}{section.5}% 14
+\BOOKMARK [1][-]{section.6}{驗證與監控}{}% 15
+\BOOKMARK [2][-]{subsection.6.1}{VLAN 設定驗證}{section.6}% 16
+\BOOKMARK [2][-]{subsection.6.2}{流量監控}{section.6}% 17
+\BOOKMARK [1][-]{section.7}{進階設定}{}% 18
+\BOOKMARK [2][-]{subsection.7.1}{VLAN 間路由}{section.7}% 19
+\BOOKMARK [2][-]{subsection.7.2}{服務品質 \(QoS\) 設定}{section.7}% 20
+\BOOKMARK [1][-]{section.8}{OpenWrt 路由器設定}{}% 21
+\BOOKMARK [2][-]{subsection.8.1}{網路設定檔}{section.8}% 22
+\BOOKMARK [1][-]{section.9}{疑難排解}{}% 23
+\BOOKMARK [2][-]{subsection.9.1}{常見問題}{section.9}% 24
+\BOOKMARK [2][-]{subsection.9.2}{除錯指令}{section.9}% 25
+\BOOKMARK [1][-]{section.10}{效能優化}{}% 26
+\BOOKMARK [2][-]{subsection.10.1}{網路介面優化}{section.10}% 27
+\BOOKMARK [1][-]{section.11}{安全考量}{}% 28
+\BOOKMARK [2][-]{subsection.11.1}{VLAN 安全設定}{section.11}% 29
+\BOOKMARK [1][-]{section.12}{總結}{}% 30

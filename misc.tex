@@ -1,0 +1,200 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{physics}
+\usepackage{xeCJK}
+\usepackage{tabularx}
+\geometry{margin=1in}
+\setCJKmainfont{Noto Serif CJK TC}
+
+\title{電磁輻射原理與能量傳遞 (Electromagnetic Radiation and Energy Propagation)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{1. 在真空中，輻射功率是否會被路徑消耗？}
+
+在\textbf{自由空間 (vacuum)}中，沒有任何導電或吸收介質，因此\textbf{輻射功率不會被路徑消耗}。  
+總輻射功率 \( P_{\text{rad}} \) 在空間中保持恆定，只是因為波前展開而導致功率密度減少。
+
+對於\textbf{等向輻射源 (isotropic radiator)}：
+\[
+S(r) = \frac{P_{\text{rad}}}{4\pi r^2}, \qquad |\mathbf{E}(r)| \propto \frac{1}{r}.
+\]
+這表示功率密度隨距離平方衰減，並非能量損失，而是\textbf{能量分佈於更大的球面上}。
+
+若有吸收性介質（例如空氣、水或介電材料），則會出現衰減項：
+\[
+|\mathbf{E}(r)| \propto \frac{e^{-\alpha r}}{r},
+\]
+其中 \(\alpha\) 為\textbf{attenuation constant (Np/m)}。  
+在真空中，\(\alpha = 0\)，因此能量不被消耗。
+
+---
+
+\section*{2. 電流分佈如何成為輻射功率？}
+
+時變電流密度 \( \mathbf{J}(\mathbf{r}') \) 會在空間中激發電磁場。  
+在頻域下，\textbf{magnetic vector potential} 為：
+\[
+\mathbf{A}(\mathbf{r}) = \frac{\mu_0}{4\pi}
+\int_V \mathbf{J}(\mathbf{r}') \frac{e^{-j\beta R}}{R} \, dV', 
+\quad R = |\mathbf{r} - \mathbf{r}'|.
+\]
+於遠場 (far field) 下可近似為：
+\[
+\mathbf{A}(\mathbf{r}) \approx 
+\frac{\mu_0 e^{-j\beta r}}{4\pi r}
+\int_V \mathbf{J}(\mathbf{r}') e^{j\beta \hat{\mathbf{r}}\cdot \mathbf{r}'} dV'.
+\]
+此式顯示遠場的角向分佈與\textbf{電流分佈的傅立葉變換 (Fourier transform)} 有關。  
+
+輻射功率密度由\textbf{Poynting vector}給出：
+\[
+\mathbf{S} = \frac{1}{2}\Re\{\mathbf{E}\times\mathbf{H}^*\},
+\]
+並且總輻射功率為：
+\[
+P_{\text{rad}} = \int_0^{2\pi}\!\!\int_0^\pi
+S(r,\theta,\phi)\,r^2\sin\theta\,d\theta\,d\phi.
+\]
+由此可見，\textbf{電流分佈決定了輻射方向圖與功率輸出}。
+
+---
+
+\section*{3. 在空氣中，輻射功率如何被消耗？}
+
+空氣並非完全無損，而具有微小導電率 \(\sigma \approx 10^{-14}\,\mathrm{S/m}\) 及複介電常數：
+\[
+\varepsilon = \varepsilon' - j\varepsilon''.
+\]
+因此，波在空氣中會有非常小的吸收與衰減。  
+傳播常數：
+\[
+\gamma = \alpha + j\beta = j\omega\sqrt{\mu\varepsilon\left(1 - j\frac{\sigma}{\omega\varepsilon}\right)}.
+\]
+功率密度隨距離衰減為：
+\[
+P(r) = P_0 e^{-2\alpha r}.
+\]
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\setlength{\tabcolsep}{6pt}
+\begin{tabularx}{\textwidth}{|c|c|X|}
+\hline
+\textbf{情況 (Case)} & \textbf{介質 (Medium)} & \textbf{功率變化 (Power Behavior)} \\
+\hline
+理想真空 (Vacuum) & Lossless & 功率完全守恆，只因球面擴散而密度降低。 \\
+\hline
+乾燥空氣 (Dry Air, <10 GHz) & 微弱導電 & 幾乎無耗損，可視為真空近似。 \\
+\hline
+潮濕空氣或毫米波區 (Humid Air / mmWave) & 含氧氣與水氣吸收 & 發生分子吸收，部分能量轉為熱能。 \\
+\hline
+霧或雨 (Fog / Rain) & 散射 + 吸收 & 顯著衰減，功率明顯減少。 \\
+\hline
+\end{tabularx}
+\end{center}
+
+在一般通訊頻段（1–10 GHz），空氣吸收極小，
+因此可認為\textbf{radiation power 幾乎不被空氣消耗}。
+
+---
+
+\section*{4. 電流如何變成輻射 (How Current Becomes Radiation)}
+
+\subsection*{(1) 從 Maxwell’s Equations 出發}
+
+時變電流 \( \mathbf{J}(\mathbf{r},t) \) 會產生變化的磁場與電場：
+\[
+\nabla \times \mathbf{H} = \mathbf{J} + \frac{\partial \mathbf{D}}{\partial t}, 
+\qquad
+\nabla \times \mathbf{E} = -\frac{\partial \mathbf{B}}{\partial t}.
+\]
+變化的磁場誘發電場，變化的電場又產生新的磁場，形成\textbf{自我維持的傳播鏈 (self-sustaining chain)}。
+
+\subsection*{(2) 輻射區域分類}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\setlength{\tabcolsep}{6pt}
+\begin{tabularx}{\textwidth}{|c|c|X|}
+\hline
+\textbf{區域 (Region)} & \textbf{場的性質 (Field Type)} & \textbf{說明 (Description)} \\
+\hline
+近場 (Reactive Near Field) & \textbf{Reactive field}（儲能型） & 能量在天線與場之間往返振盪，無淨功率流向無限遠。 \\
+\hline
+遠場 (Radiation Zone / Far Field) & \textbf{Radiating field}（傳播型） & 電場與磁場同相，能量持續向外傳遞。 \\
+\hline
+\end{tabularx}
+\end{center}
+
+\subsection*{(3) 物理過程}
+\begin{enumerate}
+    \item 射頻電壓 (RF voltage) 使導體中電荷\textbf{加速 (accelerate)}。
+    \item 加速電荷產生\textbf{變化的電場與磁場}。
+    \item 變化的場依據 Maxwell 方程互相激發。
+    \item 電場與磁場形成\textbf{自我傳播的電磁波 (self-propagating wave)}。
+    \item 能量脫離天線，無法回收，即為\textbf{電磁輻射 (electromagnetic radiation)}。
+\end{enumerate}
+
+\subsection*{(4) 功率觀點}
+
+坡印廷向量：
+\[
+\mathbf{S} = \frac{1}{2}\Re\{\mathbf{E}\times\mathbf{H}^*\},
+\]
+描述能量流密度。  
+其曲面積分為總輻射功率：
+\[
+P_{\text{rad}} = \oint_S \mathbf{S}\cdot d\mathbf{A}.
+\]
+
+---
+
+\section*{5. 總結 (Summary)}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\setlength{\tabcolsep}{6pt}
+\begin{tabularx}{\textwidth}{|c|c|X|}
+\hline
+步驟 (Step) & 概念 (Concept) & 意涵 (Meaning) \\
+\hline
+1 & 時變電流 (Time-varying current) & 電荷加速產生變化場 \\
+\hline
+2 & 變化的場互相耦合 & 根據 Maxwell 方程形成波動 \\
+\hline
+3 & 場脫離天線形成自我傳播 & 產生輻射 \\
+\hline
+4 & 坡印廷向量表示能量流 & 功率離開天線傳入空間 \\
+\hline
+\end{tabularx}
+\end{center}
+
+\[
+\begin{aligned}
+\text{Accelerating charges produce time-varying fields that sustain each other,} \\
+\text{and detach from the antenna, forming electromagnetic waves propagating in space.}
+\end{aligned}
+\]
+\section*{Poynting Vector（坡印廷向量）}
+
+\textbf{Poynting vector} 表示電磁場的\textbf{功率流密度（power flow density）}，亦即電磁能量通過單位面積的速率與方向。
+
+其數學表達式為：
+\[
+\mathbf{S} = \mathbf{E} \times \mathbf{H}
+\]
+
+其中：
+\begin{itemize}
+    \item $\mathbf{E}$ 為電場向量（electric field vector）
+    \item $\mathbf{H}$ 為磁場向量（magnetic field vector）
+    \item $\mathbf{S}$ 為\textbf{坡印廷向量（Poynting vector）}，代表能量傳遞的方向與強度
+\end{itemize}
+
+\end{document}

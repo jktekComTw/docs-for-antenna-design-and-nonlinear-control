@@ -1,0 +1,541 @@
+\documentclass{article}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+\usepackage[utf8]{inputenc}
+\usepackage[UTF8]{ctex}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+\usetikzlibrary{calc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage[unicode]{hyperref}
+\pdfstringdefDisableCommands{%
+  \def\pi{pi}%
+  \def\Omega{Omega}%
+  \def\hat#1{#1}%
+  \def\dfrac#1#2{#1/#2}%
+  \def\int{\text{∫}}%
+}
+\usepackage{xeCJK}
+\usepackage{bm}
+\usepackage{CJKutf8}
+\setCJKmainfont{Noto Serif CJK TC}    % 思源宋體繁體版（推薦）
+\setCJKsansfont{Microsoft JhengHei}   % 微軟正黑體
+\setCJKmonofont{Noto Sans Mono CJK TC}
+% \setCJKmainfont{WenQuanYi Zen Hei}
+% % 或者使用其他可用字體：
+% % \setCJKmainfont{AR PL Mingti2L Big5}
+% % \setCJKmainfont{Noto Sans CJK TC}
+
+% % 設置全形符號支持
+% \setCJKsansfont{WenQuanYi Zen Hei}
+% \setCJKmonofont{WenQuanYi Zen Hei}
+
+\title{design of planar antenna}
+\author{carlos ma}
+\date{\today}
+\usepackage[margin=1in]{geometry}
+% \usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage{caption}
+\begin{document}
+\maketitle
+\section*{法拉第電磁感應定律（微分形）}
+
+\subsection*{1. 方程式}
+\begin{equation}
+\nabla \times \mathbf{E} \;=\; -\,\frac{\partial \mathbf{B}}{\partial t}
+\end{equation}
+
+\subsection*{2. 公式拆解}
+\begin{itemize}
+  \item $\nabla \times \mathbf{E}$ ：電場 $\mathbf{E}$ 的旋度，表示電場是否形成渦旋（環流）。
+  \item $-\,\dfrac{\partial \mathbf{B}}{\partial t}$ ：磁場 $\mathbf{B}$ 隨時間的變化率，前方的負號代表方向抵抗磁通量的變化。
+\end{itemize}
+
+\subsection*{3. 物理意義}
+若磁場 $\mathbf{B}$ 在某區域隨時間改變，則該區域會產生一個環形的渦電場 $\mathbf{E}$。這個電場不是由靜電荷產生，而是因為磁場變化而感應出來。負號對應於楞次定律，說明感應電場的方向會抵抗磁通量的改變。
+
+\subsection*{4. 與積分形式的關聯}
+積分形式為：
+\begin{equation}
+\oint_{\partial S} \mathbf{E}\cdot d\mathbf{l}
+\;=\; -\,\frac{d}{dt}\int_{S}\mathbf{B}\cdot d\mathbf{A}
+\end{equation}
+左邊為沿封閉迴路的電場環流（感應電動勢），右邊為穿過該迴路面的磁通量變化率。
+
+\subsection*{5. 實際例子}
+\begin{itemize}
+  \item \textbf{發電機}：線圈在磁場中旋轉，磁通量隨時間變化，產生感應電壓。
+  \item \textbf{變壓器}：原線圈中交流電流改變磁場，使次線圈感應出電壓。
+  \item \textbf{無線充電}：發射線圈中的交變磁場在接收線圈中產生感應電流。
+\end{itemize}
+\section*{前提與假設}
+在\textbf{自由空間}（無源、均勻、各向同性）中，電荷密度 $\rho=0$、電流密度 $\bm J=0$，介電常數與磁導率為常數 $\varepsilon_0,\mu_0$。四大方程式簡化為
+\begin{align}
+\nabla \cdot \bm E &= 0, \qquad &(\text{高斯定律-電}) \label{eq:gaussE}\\
+\nabla \cdot \bm B &= 0, \qquad &(\text{高斯定律-磁}) \label{eq:gaussB}\\
+\nabla \times \bm E &= -\,\frac{\partial \bm B}{\partial t}, \qquad &(\text{法拉第定律}) \label{eq:faraday}\\
+\nabla \times \bm B &= \mu_0 \varepsilon_0 \frac{\partial \bm E}{\partial t}. \qquad &(\text{安培--麥斯威爾}) \label{eq:ampere}
+\end{align}
+
+
+\section*{安培--麥斯威爾定律}
+
+\subsection*{1. 微分形式}
+\begin{equation}
+\nabla \times \bm{B} \;=\; \mu_0 \bm{J} \;+\; \mu_0 \varepsilon_0 \frac{\partial \bm{E}}{\partial t}
+\end{equation}
+
+\begin{itemize}
+  \item $\nabla \times \bm{B}$ ：磁場 $\bm{B}$ 的旋度，代表磁場在空間中是否呈現「環流」分佈。
+  \item $\mu_0 \bm{J}$ ：傳導電流 $\bm{J}$ 所貢獻的磁場（安培定律的原始部分）。
+  \item $\mu_0 \varepsilon_0 \dfrac{\partial \bm{E}}{\partial t}$ ：由隨時間變化的電場（位移電流）所貢獻的磁場。
+\end{itemize}
+
+\noindent
+👉 麥斯威爾在安培定律中補上了「位移電流項」，才使電磁理論自洽，特別是在電容器充放電的情境中。
+
+\subsection*{2. 積分形式}
+\begin{equation}
+\oint_{\partial S} \bm{B} \cdot d\bm{l}
+\;=\;
+\mu_0 \int_S \bm{J} \cdot d\bm{A}
+\;+\;
+\mu_0 \varepsilon_0 \frac{d}{dt} \int_S \bm{E} \cdot d\bm{A}
+\end{equation}
+
+\begin{itemize}
+  \item 左邊：沿著邊界迴路的磁場環流。
+  \item 右邊第一項：穿過面積 $S$ 的傳導電流。
+  \item 右邊第二項：面積上電場通量的變化率（位移電流）。
+\end{itemize}
+
+\subsection*{3. 物理意義}
+磁場的來源不只是真實電流，還包括隨時間變化的電場。
+
+在電容器充電的例子中，雖然極板之間沒有真實電流通過，但變化的電場相當於「虛擬電流」，它同樣會產生磁場。
+
+這樣修正後，能保證電荷守恆（連續性方程）與電磁方程組的數學一致性。
+
+\subsection*{4. 與電磁波的關係}
+\begin{itemize}
+  \item 法拉第定律：變化的磁場產生電場。
+  \item 安培--麥斯威爾定律：變化的電場產生磁場。
+\end{itemize}
+
+兩者交互作用，導致電磁波可以在自由空間中自我傳遞。
+\section*{$\mu_0 \varepsilon_0$ 的意義}
+
+在安培--麥斯威爾定律裡出現的
+\[
+\mu_0 \varepsilon_0
+\]
+其實是兩個基本常數的乘積：
+
+\subsection*{1. 定義}
+
+\begin{itemize}
+  \item $\mu_0$ ：\textbf{真空磁導率} (vacuum permeability，又叫磁常數)。  
+  在 SI 制中定義為
+  \[
+  \mu_0 \approx 4\pi \times 10^{-7}\; \text{H/m}
+  \]
+  （亨利/米）。
+  
+  \item $\varepsilon_0$ ：\textbf{真空介電常數} (vacuum permittivity，又叫電常數)。  
+  數值為
+  \[
+  \varepsilon_0 \approx 8.854 \times 10^{-12}\; \text{F/m}
+  \]
+  （法/米）。
+\end{itemize}
+
+\subsection*{2. 乘積的意義}
+它們的乘積出現在電磁波方程中：
+\[
+c \;=\; \frac{1}{\sqrt{\mu_0 \varepsilon_0}}
+\]
+這裡 $c$ 就是真空中的光速。
+
+\medskip
+👉 換句話說，光速其實由電與磁的基本常數決定。這是麥斯威爾電磁理論最重要的發現之一，也說明光是電磁波。
+\section*{高斯定律（磁）}
+
+\subsection*{微分形式}
+\begin{equation}
+\nabla \cdot \mathbf{B} = 0
+\end{equation}
+
+\subsection*{積分形式}
+\begin{equation}
+\oint_{\partial V} \mathbf{B} \cdot d\mathbf{A} = 0
+\end{equation}
+
+\subsection*{物理意義}
+沒有磁單極；磁力線不會「起止」，而是形成閉合環。
+
+\section{Gauss's law 兩種等價形式}
+
+\paragraph{微分形（局部說法）}
+\begin{equation}
+\nabla\!\cdot\!\mathbf{E}=\frac{\rho}{\varepsilon_0}.
+\end{equation}
+在空間中每一點，電場的散度等於該點體電荷密度 $\rho$ 除以真空介電常數 $\varepsilon_0$。散度 $>0$ 表示電場線在此處湧出（源）；$<0$ 表示匯入（匯）。
+
+\paragraph{積分形（整體說法）}
+\begin{equation}
+\oint_{\partial V}\mathbf{E}\cdot d\mathbf{A}
+=\frac{1}{\varepsilon_0}\int_V \rho\, dV.
+\end{equation}
+任一封閉曲面 $\partial V$ 的電通量等於曲面包住的總電荷除以 $\varepsilon_0$。
+
+\paragraph{兩者等價：散度定理}
+\begin{equation}
+\int_V (\nabla\!\cdot\!\mathbf{E})\,dV
+=\oint_{\partial V}\mathbf{E}\cdot d\mathbf{A}
+\ \Rightarrow\ 
+\nabla\!\cdot\!\mathbf{E}=\rho/\varepsilon_0.
+\end{equation}
+
+\section{物理意義與直觀}
+\begin{itemize}[leftmargin=1.5em]
+\item 電荷是電場線的源與匯：正電荷放出、負電荷吸入。
+\item 電通量衡量穿出曲面的淨場線數量；封閉曲面內淨電荷越大，通量越大。
+\item 若曲面內淨電荷為 $0$，總電通量必為 $0$（但 $\mathbf{E}$ 不必為 $0$）。
+\end{itemize}
+
+\section{與庫侖定律／位勢的關係}
+靜電下 $\nabla\times\mathbf{E}=0$，故 $\mathbf{E}=-\nabla V$。代入微分形得卜松方程
+\begin{equation}
+\nabla^2 V = -\frac{\rho}{\varepsilon_0},
+\end{equation}
+在無電荷區域為拉普拉斯方程 $\nabla^2 V=0$。
+單一點電荷 $q$ 於原點，$\rho=q\delta(\mathbf{r})$，由積分形得
+\begin{equation}
+\oint \mathbf{E}\cdot d\mathbf{A}=\frac{q}{\varepsilon_0}
+\ \Rightarrow\
+\mathbf{E}(r)=\frac{1}{4\pi\varepsilon_0}\frac{q}{r^2}\,\hat{\mathbf{r}},
+\end{equation}
+即庫侖定律。
+
+\section{高對稱範例與高斯面選擇}
+選高斯面使 $\mathbf{E}$ 在面上（i）大小恆定，（ii）與面法向平行或垂直，（iii）部分通量為 $0$，以便積分。
+
+\subsection*{(a) 無限大帶電平面（面電荷密度 $\sigma$）}
+取兩端在平面兩側的圓柱（藥罐）作高斯面。側面通量 $=0$，上下兩蓋通量相同：
+\begin{equation}
+EA + EA = \frac{\sigma A}{\varepsilon_0}
+\ \Rightarrow\
+E=\frac{\sigma}{2\varepsilon_0}.
+\end{equation}
+方向由正電面朝外，與距離無關。
+
+\subsection*{(b) 無限長直線電荷（線密度 $\lambda$）}
+取半徑 $r$、長度 $L$ 的同軸圓柱。端面通量 $=0$；側面通量 $E(2\pi r L)$：
+\begin{equation}
+E(2\pi r L)=\frac{\lambda L}{\varepsilon_0}
+\ \Rightarrow\
+E(r)=\frac{\lambda}{2\pi\varepsilon_0 r}.
+\end{equation}
+
+\subsection*{(c) 均勻帶電實心球（體密度 $\rho$，半徑 $R$）}
+外部 $r\ge R$：$Q=\frac{4}{3}\pi R^3\rho$，
+\begin{equation}
+E(r)=\frac{1}{4\pi\varepsilon_0}\frac{Q}{r^2}.
+\end{equation}
+內部 $r<R$：$Q(r)=\frac{4}{3}\pi r^3\rho$，
+\begin{equation}
+E(r)=\frac{1}{4\pi\varepsilon_0}\frac{Q(r)}{r^2}
+=\frac{\rho\, r}{3\varepsilon_0}.
+\end{equation}
+
+\subsection*{(d) 帶電球殼（表面電荷 $\sigma$）}
+殼外如點電荷：$E=\dfrac{1}{4\pi\varepsilon_0}\dfrac{Q}{r^2}$；殼內 $E=0$。
+
+\section{邊界條件與面電荷的跳躍}
+取穿過界面的極薄 pillbox 作高斯面，可得電場法向分量的跳躍：
+\begin{equation}
+(\mathbf{E}_{\text{外}}-\mathbf{E}_{\text{內}})\cdot\hat{\mathbf{n}}
+=\frac{\sigma}{\varepsilon_0},
+\end{equation}
+其中 $\sigma$ 為界面上的表面電荷密度，$\hat{\mathbf{n}}$ 由內指向外。
+（靜電下 $\nabla\times\mathbf{E}=0$，故切向分量連續。）
+
+\section{介質中的高斯定律（位移向量 $\mathbf{D}$）}
+將束縛電荷吸收進極化向量 $\mathbf{P}$，定義
+\begin{equation}
+\mathbf{D}=\varepsilon_0\mathbf{E}+\mathbf{P},
+\qquad
+\nabla\!\cdot\!\mathbf{D}=\rho_{\text{free}},
+\qquad
+\oint \mathbf{D}\cdot d\mathbf{A}=Q_{\text{free}}.
+\end{equation}
+各向同性線性介質下 $\mathbf{D}=\varepsilon\mathbf{E}$（$\varepsilon=\varepsilon_r\varepsilon_0$），計算常以「自由電荷」更方便。
+
+\section{常見陷阱}
+\begin{itemize}[leftmargin=1.5em]
+\item 必須是封閉曲面；開放面不能直接用積分形。
+\item 通量 $=0$ 不代表 $\mathbf{E}=0$，可能僅是進出相抵。
+\item 對稱性不足時雖然高斯定律仍成立，但難以直接解出 $\mathbf{E}(\mathbf{r})$，需改用位勢／卜松方程。
+\item 單位：$\rho\,[\mathrm{C/m^3}]$，$\varepsilon_0\approx 8.854\times 10^{-12}\ \mathrm{F/m}$；電通量單位 $[\mathrm{V\cdot m}]$ 或 $[\mathrm{N\,m^2/C}]$。
+\end{itemize}
+
+\section{解題步驟速記}
+\begin{enumerate}[leftmargin=1.5em]
+\item 判斷對稱性（球／柱／平面）。
+\item 選高斯面使 $\mathbf{E}$ 易處理（恆定／平行或垂直）。
+\item 寫通量 $\displaystyle \oint \mathbf{E}\cdot d\mathbf{A}$（多半為 $E\times \text{面積}$）。
+\item 計算包住電荷（體／面／線積分或幾何體積 $\times$ 密度）。
+\item 用 $\Phi_E=Q_{\text{encl}}/\varepsilon_0$ 解出 $E$，並標明方向。
+\end{enumerate}
+\section*{對電場 $\bm E$ 的波動方程}
+對 \eqref{eq:faraday} 兩側取旋度：
+\begin{equation}
+\nabla \times (\nabla \times \bm E) \;=\; -\,\frac{\partial}{\partial t}\bigl(\nabla \times \bm B\bigr).
+\end{equation}
+使用向量恆等式 $\nabla \times (\nabla \times \bm E)=\nabla(\nabla\cdot \bm E)-\nabla^2 \bm E$，並代入 \eqref{eq:gaussE} 與 \eqref{eq:ampere} 得
+\begin{align}
+\nabla(\nabla\cdot \bm E) - \nabla^2 \bm E &= -\,\frac{\partial}{\partial t}\!\left(\mu_0 \varepsilon_0 \frac{\partial \bm E}{\partial t}\right)\\
+0 - \nabla^2 \bm E &= -\,\mu_0 \varepsilon_0 \frac{\partial^2 \bm E}{\partial t^2}.
+\end{align}
+移項可得\textbf{電場的波動方程}：
+\begin{equation}
+\boxed{\;\nabla^2 \bm E \;-\; \mu_0 \varepsilon_0 \,\frac{\partial^2 \bm E}{\partial t^2} \;=\; 0\; } \label{eq:waveE}
+\end{equation}
+
+\section*{對磁場 $\bm B$ 的波動方程}
+同理，對 \eqref{eq:ampere} 兩側取旋度：
+\begin{equation}
+\nabla \times (\nabla \times \bm B) \;=\; \mu_0 \varepsilon_0 \frac{\partial}{\partial t}\bigl(\nabla \times \bm E\bigr).
+\end{equation}
+使用恆等式並代入 \eqref{eq:gaussB} 與 \eqref{eq:faraday}：
+\begin{align}
+\nabla(\nabla\cdot \bm B) - \nabla^2 \bm B &= \mu_0 \varepsilon_0 \frac{\partial}{\partial t}\!\left(-\,\frac{\partial \bm B}{\partial t}\right)\\
+0 - \nabla^2 \bm B &= -\,\mu_0 \varepsilon_0 \frac{\partial^2 \bm B}{\partial t^2}.
+\end{align}
+得到\textbf{磁場的波動方程}：
+\begin{equation}
+\boxed{\;\nabla^2 \bm B \;-\; \mu_0 \varepsilon_0 \,\frac{\partial^2 \bm B}{\partial t^2} \;=\; 0\; } \label{eq:waveB}
+\end{equation}
+
+\section*{波速與光速的關係}
+比較 \eqref{eq:waveE} 與 \eqref{eq:waveB} 與標準波動方程
+\(
+\nabla^2 \bm \Psi - \dfrac{1}{v^2}\dfrac{\partial^2 \bm \Psi}{\partial t^2}=0
+\)
+可讀出自由空間中的相速度
+\begin{equation}
+v \;=\; \frac{1}{\sqrt{\mu_0 \varepsilon_0}} \;\equiv\; c,
+\end{equation}
+即\textbf{光速}。因此光是電磁波，且其速度由 \(\mu_0\) 與 \(\varepsilon_0\) 這兩個基本常數決定。
+
+\section*{平面波解與 $\bm E,\bm B$ 關係（選讀）}
+設平面波解
+\(
+\bm E(\bm r,t)=\bm E_0 e^{i(\bm k\cdot \bm r-\omega t)},\;
+\bm B(\bm r,t)=\bm B_0 e^{i(\bm k\cdot \bm r-\omega t)}
+\)。
+代入 \eqref{eq:faraday} 與 \eqref{eq:ampere} 可得
+\begin{align}
+\bm k \times \bm E_0 &= \omega \bm B_0,\\
+\bm k \times \bm B_0 &= -\,\frac{\omega}{c^2}\bm E_0,
+\end{align}
+並有
+\(
+\bm k \cdot \bm E_0 = \bm k \cdot \bm B_0 = 0
+\)
+（橫波）。在自由空間，
+\begin{equation}
+|\bm E_0| \;=\; c\,|\bm B_0|, \qquad 
+\bm E_0 \perp \bm B_0 \perp \bm k.
+\end{equation}
+
+\section*{延伸：介質中的波速}
+在均勻、各向同性\textbf{介質}中，以常數 \(\varepsilon, \mu\) 取代 \(\varepsilon_0,\mu_0\)，同樣推導得到
+\begin{equation}
+\nabla^2 \bm E - \mu \varepsilon \,\frac{\partial^2 \bm E}{\partial t^2}=0,\qquad
+\nabla^2 \bm B - \mu \varepsilon \,\frac{\partial^2 \bm B}{\partial t^2}=0,
+\end{equation}
+波速
+\(
+v=1/\sqrt{\mu \varepsilon} = c/\sqrt{\varepsilon_r \mu_r}
+\)
+，其中 \(\varepsilon_r=\varepsilon/\varepsilon_0\)、\(\mu_r=\mu/\mu_0\)。
+
+\section*{\texorpdfstring{$4\pi$ 核心觀念}}
+\textbf{立體角}（solid angle）以球面面積來定義：
+\begin{equation}
+\Omega = \frac{A}{r^2}, \qquad [\Omega]=\text{sr},
+\end{equation}
+其中 $A$ 是半徑 $r$ 的球面上一塊對應面積。整個球面的面積為 $4\pi r^2$，因此整個球面對球心所張立體角
+\begin{equation}
+\Omega_{\text{sphere}}=\frac{4\pi r^2}{r^2}=4\pi\ \text{sr}.
+\end{equation}
+
+\medskip
+對於\textbf{任意封閉曲面} $S$，若觀測點 $O$ 位於 $S$ 的內部，則由 $O$ 發出的所有射線都會與 $S$ 相交一次，將 $S$ 做\textbf{放射投影}到同心球面上，得到覆蓋整個球面的一張「貼圖」，故其\textbf{總立體角}必為 $4\pi$。若 $O$ 在 $S$ 外部，射線穿入與穿出相抵，\(\Omega_{\text{total}}=0\)。
+
+\section*{與高斯定律的關係}
+對點電荷 $q$，$\mathbf{E}=\dfrac{1}{4\pi\varepsilon_0}\dfrac{q}{r^2}\hat{\mathbf{r}}$。沿封閉曲面 $S$ 的通量為
+\begin{equation}
+\oint_S \mathbf{E}\cdot d\mathbf{A}
+= \frac{q}{4\pi\varepsilon_0}\oint_S \frac{\hat{\mathbf{r}}\cdot d\mathbf{A}}{r^2}
+= \frac{q}{4\pi\varepsilon_0}\,\underbrace{\oint_S d\Omega}_{=\,4\pi\ \text{(若 $O$ 在 $S$ 內)}} 
+= \frac{q}{\varepsilon_0},
+\end{equation}
+其中 $d\Omega \equiv \dfrac{\hat{\mathbf{r}}\cdot d\mathbf{A}}{r^2}$ 是微小立體角。這正是高斯定律的幾何本質。
+
+\section*{圖示：放射投影與 \texorpdfstring{$4\pi$}{4π}}
+\begin{figure}[h!]
+  \centering
+  %----------------- Subfigure (a) -----------------%
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \begin{tikzpicture}[scale=1.05]
+      % Coordinates
+      \coordinate (O) at (0,0);
+      \def\R{2.2}   % sphere radius
+      % Sphere (as circle in 2D)
+      \draw[thick] (0,0) circle (\R);
+      % Arbitrary closed surface S (a blobby loop enclosing O)
+      \draw[very thick,rounded corners=8pt]
+        (-2.4,0.4) .. controls (-1.6,1.6) and (-0.8,1.2) .. (-0.2,1.6)
+        .. controls (0.6,2.0) and (1.8,1.2) .. (2.2,0.2)
+        .. controls (2.4,-0.6) and (1.2,-1.4) .. (0.2,-1.2)
+        .. controls (-1.2,-1.0) and (-1.8,-0.2) .. (-2.4,0.4);
+      \node[anchor=south east] at (-2.0,1.2) {$S$};
+      % Rays from O to S and to sphere
+      \foreach \ang in {20,60,120,180,240,300}{
+        \draw[thin,-{Latex[length=2mm]}] (O) -- ({\R*cos(\ang)},{\R*sin(\ang)});
+      }
+      % Mark O
+      \fill (O) circle (1.5pt);
+      \node[below left] at (O) {$O$};
+      % Labels
+      \node at (0,-2.8) {（a）從 $O$ 做放射投影：$S$ 的外形投到球面上};
+    \end{tikzpicture}
+  \end{subfigure}
+  \hfill
+  %----------------- Subfigure (b) -----------------%
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \begin{tikzpicture}[scale=1.05]
+      \coordinate (O) at (0,0);
+      \def\R{2.2}
+      % Sphere
+      \shade[inner color=white,outer color=gray!20] (0,0) circle (\R);
+      \draw[thick] (0,0) circle (\R);
+      % A patch on sphere representing dOmega area
+      \begin{scope}
+        \clip (0,0) circle (\R);
+        \draw[fill=gray!40,opacity=0.7]
+          plot[smooth cycle] coordinates {(0.9,1.6) (1.4,1.4) (1.6,0.9) (1.2,0.8) (0.8,1.1)};
+      \end{scope}
+      % Rays delimiting the patch
+      \draw[thin,-{Latex[length=2mm]}] (O) -- (1.1,1.1);
+      \draw[thin,-{Latex[length=2mm]}] (O) -- (1.5,0.9);
+      % Mark O
+      \fill (O) circle (1.5pt);
+      \node[below left] at (O) {$O$};
+      % Labels
+      \node at (0,-2.8) {（b）球面上的區塊對應 $d\Omega=\frac{dA}{r^2}$，總和為 $4\pi$};
+    \end{tikzpicture}
+  \end{subfigure}
+  \caption{任意封閉曲面 $S$ 由內點 $O$ 看出去，放射投影覆蓋整個球面，\(\displaystyle \int\!\!d\Omega=4\pi\).}
+\end{figure}
+
+\section*{補充：外部觀測點時為何是 $0$？}
+若 $O$ 在 $S$ 外部，沿任意射線穿入與穿出各一次，可將 $d\Omega$ 分為正負兩部分（以外法向為準），積分相互抵消，\(\displaystyle \oint_S d\Omega=0\)。這也對應到無電荷包裹時的零通量情形。
+
+\section*{Dirac Delta Function in Spherical Coordinates}
+
+In Cartesian coordinates, the three-dimensional Dirac delta function is
+\begin{equation}
+\delta(\mathbf{r}) = \delta(x)\,\delta(y)\,\delta(z),
+\end{equation}
+which satisfies
+\begin{equation}
+\int_{\mathbb{R}^3} f(\mathbf{r}) \, \delta(\mathbf{r}) \, d^3r = f(0,0,0).
+\end{equation}
+
+In spherical coordinates $(r,\theta,\phi)$, the volume element is
+\begin{equation}
+d^3r = r^2 \sin\theta \, dr \, d\theta \, d\phi.
+\end{equation}
+
+To preserve the defining property of the delta function, we require
+\begin{equation}
+\delta(\mathbf{r}) = \frac{1}{4\pi r^2}\,\delta(r).
+\end{equation}
+
+\subsection*{Verification}
+Consider
+\begin{align}
+\int f(\mathbf{r}) \, \delta(\mathbf{r}) \, d^3r 
+&= \int_0^\infty \int_0^\pi \int_0^{2\pi} 
+   f(r,\theta,\phi)\,\frac{1}{4\pi r^2}\,\delta(r)\, 
+   r^2 \sin\theta \, d\phi \, d\theta \, dr \\
+&= \frac{1}{4\pi} \int_0^\infty \delta(r) f(r,\theta,\phi)\, dr 
+   \int_0^\pi \sin\theta \, d\theta 
+   \int_0^{2\pi} d\phi.
+\end{align}
+
+The angular integrals yield
+\[
+\int_0^\pi \sin\theta \, d\theta = 2, 
+\qquad \int_0^{2\pi} d\phi = 2\pi,
+\]
+so the product is $4\pi$. Therefore,
+\begin{equation}
+\int f(\mathbf{r}) \, \delta(\mathbf{r}) \, d^3r = f(0).
+\end{equation}
+
+\subsection*{Result}
+Thus, in spherical coordinates,
+\begin{equation}
+\boxed{ \delta(\mathbf{r}) = \frac{1}{4\pi r^2}\,\delta(r) }.
+\end{equation}
+
+For a point charge $q$ at the origin, the charge density is
+\begin{equation}
+\rho(\mathbf{r}) = q \, \delta(\mathbf{r}) 
+= \frac{q}{4\pi r^2}\,\delta(r).
+\end{equation}
+\subsection*{Application: Divergence of $\hat{r}/r^2$}
+
+A well-known identity in electromagnetism is
+\begin{equation}
+\nabla \cdot \left( \frac{\hat{r}}{r^2} \right) = 4\pi \, \delta(\mathbf{r}),
+\end{equation}
+where $\hat{r} = \mathbf{r}/r$ is the radial unit vector.
+
+\subsubsection*{Proof}
+For $r > 0$, we can compute in spherical coordinates:
+\begin{equation}
+\nabla \cdot \left( \frac{\hat{r}}{r^2} \right)
+= \frac{1}{r^2} \frac{\partial}{\partial r} \left( r^2 \cdot \frac{1}{r^2} \right)
+= \frac{1}{r^2} \frac{\partial}{\partial r}(1) = 0.
+\end{equation}
+
+Thus the divergence vanishes everywhere except at the origin $r=0$.  
+To find the contribution at the origin, apply the divergence theorem to a ball of radius $R$:
+\begin{align}
+\int_{|\mathbf{r}|\leq R} \nabla \cdot \left( \frac{\hat{r}}{r^2} \right) \, d^3r
+&= \oint_{|\mathbf{r}|=R} \frac{\hat{r}}{r^2} \cdot d\mathbf{A} \\
+&= \oint_{|\mathbf{r}|=R} \frac{\hat{r}}{R^2} \cdot (R^2 \sin\theta \, d\theta \, d\phi \, \hat{r}) \\
+&= \int_0^{2\pi} \int_0^\pi \sin\theta \, d\theta \, d\phi \\
+&= 4\pi.
+\end{align}
+
+Since this holds for any radius $R$, the divergence must be a distribution concentrated at the origin with total integral $4\pi$.  
+Hence,
+\begin{equation}
+\nabla \cdot \left( \frac{\hat{r}}{r^2} \right) = 4\pi \, \delta(\mathbf{r}).
+\end{equation}
+
+\end{document}

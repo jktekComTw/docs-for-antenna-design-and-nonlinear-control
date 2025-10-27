@@ -1,0 +1,78 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{xeCJK}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\usepackage{xeCJK}
+\usepackage{CJKutf8}
+\setCJKmainfont{Noto Serif CJK TC}    % 思源宋體繁體版（推薦）
+\setCJKsansfont{Microsoft JhengHei}   % 微軟正黑體
+\setCJKmonofont{Noto Sans Mono CJK TC}
+\title{PID 控制理論發展時間線}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+以下是 \textbf{PID 控制理論發展時間線}，方便記憶各個重要里程碑：
+
+\section{PID 控制發展時間線}
+
+\begin{longtable}{p{2cm} p{4cm} p{8cm}}
+\toprule
+\textbf{年代} & \textbf{事件} & \textbf{說明} \\
+\midrule
+\textbf{1890s} & 比例控制（P 控制）應用 & 用於蒸汽機調速器、溫度控制等，但不能消除穩態誤差 \\
+\addlinespace
+\textbf{1922} & \textbf{Nicolas Minorsky} 提出 PID & 在美國海軍自動舵研究中，首次提出比例 + 積分 + 微分的控制方法 \\
+\addlinespace
+\textbf{1930--1940s} & 工業應用雛形 & 機械與氣動控制器引入 PID 三項設計 \\
+\addlinespace
+\textbf{1942} & Taylor Instrument 推出商用 PID & 氣動式 PID 控制器進入工業市場 \\
+\addlinespace
+\textbf{1940s} & \textbf{Ziegler--Nichols} 發表整定法 & 提出經驗公式，用臨界增益與臨界週期整定 PID，快速推廣 \\
+\addlinespace
+\textbf{1970s} & 數位化 PID 興起 & 微處理器可直接實作 PID 演算法，取代機械與氣動式 \\
+\addlinespace
+\textbf{1980s--至今} & 多種改良型 PID & 增加前饋補償、自整定、模糊 PID、適應控制等，應用於航太、機器人、製程控制等 \\
+\bottomrule
+\end{longtable}
+
+\section{圖示化時間軸}
+
+\begin{center}
+\begin{tikzpicture}[scale=1.2]
+% Timeline arrow
+\draw[-{Stealth[length=5mm]}] (0,0) -- (12,0);
+
+% Year markers
+\draw (1,0) -- (1,-0.3) node[below] {1890s};
+\draw (3,0) -- (3,-0.3) node[below] {1922};
+\draw (6,0) -- (6,-0.3) node[below] {1940s};
+\draw (9,0) -- (9,-0.3) node[below] {1970s};
+\draw (11.5,0) -- (11.5,-0.3) node[below] {現代};
+
+% Event labels above timeline
+\node[above, text width=1.5cm, align=center] at (1,0.5) {P控制};
+\node[above, text width=2cm, align=center] at (3,0.5) {Minorsky};
+\node[above, text width=2.5cm, align=center] at (6,0.5) {Z-N整定 \& 商用PID};
+\node[above, text width=2cm, align=center] at (9,0.5) {數位化PID};
+\node[above, text width=2cm, align=center] at (11.5,0.5) {改良型PID};
+
+% Connecting lines
+\draw[dashed] (1,0.3) -- (1,0);
+\draw[dashed] (3,0.3) -- (3,0);
+\draw[dashed] (6,0.3) -- (6,0);
+\draw[dashed] (9,0.3) -- (9,0);
+\draw[dashed] (11.5,0.3) -- (11.5,0);
+
+\end{tikzpicture}
+\end{center}
+
+\vspace{1cm}
+
+\end{document}

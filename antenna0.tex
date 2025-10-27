@@ -1,0 +1,835 @@
+\documentclass{article}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+\usepackage[utf8]{inputenc}
+\usepackage[UTF8]{ctex}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+\usetikzlibrary{calc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{physics}
+\usepackage{siunitx}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage[unicode]{hyperref}
+\pdfstringdefDisableCommands{%
+  \def\pi{pi}%
+  \def\Omega{Omega}%
+  \def\hat#1{#1}%
+  \def\dfrac#1#2{#1/#2}%
+  \def\int{\text{∫}}%
+}
+\usepackage{xeCJK}
+\usepackage{bm}
+\usepackage{CJKutf8}
+\setCJKmainfont{Noto Serif CJK TC}    % 思源宋體繁體版（推薦）
+\setCJKsansfont{Microsoft JhengHei}   % 微軟正黑體
+\setCJKmonofont{Noto Sans Mono CJK TC}
+% \setCJKmainfont{WenQuanYi Zen Hei}
+% % 或者使用其他可用字體：
+% % \setCJKmainfont{AR PL Mingti2L Big5}
+% % \setCJKmainfont{Noto Sans CJK TC}
+
+% % 設置全形符號支持
+% \setCJKsansfont{WenQuanYi Zen Hei}
+% \setCJKmonofont{WenQuanYi Zen Hei}
+
+\title{design of planar antenna}
+\author{carlos ma}
+\date{\today}
+\usepackage[margin=1in]{geometry}
+% \usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage{caption}
+\begin{document}
+\maketitle
+\section*{(1) 勢函數的波動方程（Lorenz 規範）}
+
+由勢的定義
+\[
+\mathbf{B}=\nabla\times\mathbf{A},\qquad
+\mathbf{E}=-\nabla\Phi-\frac{\partial\mathbf{A}}{\partial t},
+\]
+配合 Lorenz 規範
+\[
+\nabla\cdot\mathbf{A}+\mu\varepsilon\frac{\partial\Phi}{\partial t}=0,
+\]
+可得含源波動方程：
+\begin{align}
+\nabla^{2}\Phi - \mu\varepsilon \frac{\partial^{2}\Phi}{\partial t^{2}}
+&= -\frac{\rho}{\varepsilon}, \label{eq:Phi}\\[6pt]
+\nabla^{2}\mathbf{A} - \mu\varepsilon \frac{\partial^{2}\mathbf{A}}{\partial t^{2}}
+&= -\mu\,\mathbf{J}. \label{eq:A}
+\end{align}
+
+---
+
+\section*{(2) 電場的波動方程}
+
+從法拉第定律取旋度：
+\[
+\nabla\times(\nabla\times\mathbf{E})
+=-\frac{\partial}{\partial t}(\nabla\times\mathbf{B}),
+\]
+利用向量恆等式與高斯定律、安培–麥斯威爾定律，得
+\begin{equation}
+\nabla^2 \mathbf{E}-\mu\varepsilon\,\frac{\partial^2 \mathbf{E}}{\partial t^2}
+=\nabla\!\left(\frac{\rho}{\varepsilon}\right)+\mu\,\frac{\partial \mathbf{J}}{\partial t}.
+\label{eq:Ewave}
+\end{equation}
+
+---
+
+\section*{(3) 磁場的波動方程}
+
+由安培–麥斯威爾定律取旋度並代入 \(\nabla\times\mathbf{E}=-\partial_t\mathbf{B}\)：
+\begin{equation}
+\nabla^2 \mathbf{B}-\mu\varepsilon\,\frac{\partial^2 \mathbf{B}}{\partial t^2}
+=-\,\mu\,\nabla\times\mathbf{J}.
+\label{eq:Bwave}
+\end{equation}
+
+---
+
+\section*{(4) 無源情況}
+
+若 \(\rho=0,\ \mathbf{J}=0\)，則 \eqref{eq:Ewave} 與 \eqref{eq:Bwave} 退化為齊次波動方程：
+\[
+\nabla^2 \mathbf{E}-\mu\varepsilon \frac{\partial^2 \mathbf{E}}{\partial t^2}=0,\qquad
+\nabla^2 \mathbf{B}-\mu\varepsilon \frac{\partial^2 \mathbf{B}}{\partial t^2}=0,
+\]
+對應到自由空間的電磁波傳播，波速為 \(c=1/\sqrt{\mu\varepsilon}\)。
+
+---
+
+\section*{(5) 比較總結}
+
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|>{\raggedright}m{3.5cm}|>{\raggedright}m{5cm}|>{\raggedright\arraybackslash}m{5cm}|}
+\hline
+ & \textbf{勢函數波動方程} & \textbf{場的波動方程} \\
+\hline
+形式 &
+\(\nabla^2\Phi-\mu\varepsilon\,\partial_t^2\Phi=-\rho/\varepsilon\) \newline
+\(\nabla^2\mathbf{A}-\mu\varepsilon\,\partial_t^2\mathbf{A}=-\mu\mathbf{J}\) &
+\(\nabla^2 \mathbf{E}-\mu\varepsilon\,\partial_t^2 \mathbf{E}=\nabla(\rho/\varepsilon)+\mu\partial_t\mathbf{J}\) \newline
+\(\nabla^2 \mathbf{B}-\mu\varepsilon\,\partial_t^2 \mathbf{B}=-\mu\nabla\times\mathbf{J}\) \\
+\hline
+源項 &
+直接出現 \(\rho,\mathbf{J}\) &
+含有 \(\nabla\rho,\ \partial_t\mathbf{J},\ \nabla\times\mathbf{J}\) \\
+\hline
+解法便利性 &
+適合用綠函數 \(\to\) 得到推遲勢 (retarded potentials) &
+源項複雜，較難直接求解，通常透過勢間接求解 \\
+\hline
+規範依賴 &
+需要選規範（此處用 Lorenz gauge） &
+無規範問題，因 \(\mathbf{E},\mathbf{B}\) 為物理量 \\
+\hline
+無源極限 &
+變成齊次波動方程，解為平面波/球面波 &
+同樣退化為齊次波動方程，與圖 (2)(3) 相符 \\
+\hline
+\end{tabular}
+% ===== 頻域慣例 =====
+% 使用 e^{-j\omega t}，故 \partial_t \to -j\omega, \ \partial_t^2 \to -\omega^2
+% 介質關係：\mathbf{D}=\varepsilon\mathbf{E}, \ \mathbf{B}=\mu\mathbf{H}
+% （有損介質可用 \varepsilon_c=\varepsilon - j\sigma/\omega）
+
+\section*{頻域形式（$e^{-j\omega t}$ 慣例）}
+
+\subsection*{(1) 勢函數的 Helmholtz 方程（Lorenz 規範）}
+Lorenz 規範在頻域為
+\[
+\nabla\!\cdot\!\mathbf{A} \;-\; j\omega\,\mu\varepsilon\,\Phi \;=\; 0.
+\]
+對應的勢方程變為 Helmholtz 形式：
+\begin{align}
+\left(\nabla^2 + k^2\right)\,\Phi(\mathbf{r},\omega) &= -\,\frac{\rho(\mathbf{r},\omega)}{\varepsilon}, \label{eq:Phi_helm}\\[4pt]
+\left(\nabla^2 + k^2\right)\,\mathbf{A}(\mathbf{r},\omega) &= -\,\mu\,\mathbf{J}(\mathbf{r},\omega), \label{eq:A_helm}
+\end{align}
+其中
+\[
+k^2 \;=\; \omega^2\,\mu\,\varepsilon.
+\]
+若介質有電導率 $\sigma$，常以
+\[
+\varepsilon_c \;=\; \varepsilon \;-\; \frac{j\sigma}{\omega}
+\]
+取代 $\varepsilon$，則 $k^2=\omega^2\mu\varepsilon_c$（衰減與相位同時包含在 $k$ 中）。
+
+\subsection*{(2) 電場的頻域波動方程（含源的一般式）}
+由時間域式
+\(
+\nabla^2\mathbf{E}-\mu\varepsilon\,\partial_t^2\mathbf{E}
+=\nabla(\rho/\varepsilon)+\mu\,\partial_t\mathbf{J}
+\)
+代入 $\partial_t\to -j\omega$ 可得
+\begin{equation}
+\boxed{\;
+\left(\nabla^2 + k^2\right)\mathbf{E}
+\;=\;
+\nabla\!\left(\frac{\rho}{\varepsilon}\right)
+\;-\; j\omega\,\mu\,\mathbf{J}
+\;}.
+\label{eq:E_helm}
+\end{equation}
+
+\subsection*{(3) 磁場的頻域波動方程（含源的一般式）}
+由時間域式
+\(
+\nabla^2\mathbf{B}-\mu\varepsilon\,\partial_t^2\mathbf{B}
+=-\,\mu\,\nabla\times\mathbf{J}
+\)
+得到
+\begin{equation}
+\boxed{\;
+\left(\nabla^2 + k^2\right)\mathbf{B}
+\;=\;
+-\,\mu\,\nabla\times\mathbf{J}
+\;}.
+\label{eq:B_helm}
+\end{equation}
+
+\subsection*{(4) 頻域的麥斯威爾方程與連續性方程（供對照）}
+在 $e^{-j\omega t}$ 慣例下，
+\[
+\begin{aligned}
+&\nabla\times\mathbf{E} = \;+\; j\omega\,\mathbf{B}, 
+&&\qquad \nabla\cdot\mathbf{B}=0,\\
+&\nabla\times\mathbf{H} = \mathbf{J} \;-\; j\omega\,\mathbf{D},
+&&\qquad \nabla\cdot\mathbf{D}=\rho,\\
+&\text{連續性：}\quad \nabla\cdot\mathbf{J} = j\omega\,\rho.
+\end{aligned}
+\]
+
+\subsection*{(5) 無源與均勻介質的特例}
+若 $\rho=\mathbf{J}=0$，則 \eqref{eq:E_helm}, \eqref{eq:B_helm} 退化為
+\[
+\left(\nabla^2 + k^2\right)\mathbf{E}=0,\qquad
+\left(\nabla^2 + k^2\right)\mathbf{B}=0,
+\]
+為標準的 Helmholtz 方程。平面波解滿足
+\(
+\mathbf{E},\mathbf{H} \propto e^{-j\mathbf{k}\cdot\mathbf{r}},
+\)
+其中 $\abs{\mathbf{k}}=k$，相速度 $v_p=\omega/k=1/\sqrt{\mu\varepsilon}$。
+\section*{推導}
+從麥斯威爾方程與向量勢定義出發：
+\begin{align}
+\nabla\times\mathbf{E} &= -\,\frac{\partial \mathbf{B}}{\partial t}, \label{eq:Faraday}\\
+\mathbf{B} &= \nabla\times\mathbf{A}. \label{eq:Bdef}
+\end{align}
+將 \eqref{eq:Bdef} 代入 \eqref{eq:Faraday}：
+\[
+\nabla\times\mathbf{E}
+= -\,\frac{\partial}{\partial t}\bigl(\nabla\times\mathbf{A}\bigr)
+\;\;\Longrightarrow\;\;
+\nabla\times\!\left(\mathbf{E}+\frac{\partial \mathbf{A}}{\partial t}\right)=\mathbf{0}.
+\]
+因為 $\nabla\times\mathbf{F}=\mathbf{0}$ 的向量場 $\mathbf{F}$ 可寫成某純量函數的負梯度（在單連通區域）：
+\[
+\mathbf{E}+\frac{\partial \mathbf{A}}{\partial t}=-\,\nabla\Phi,
+\]
+故得到
+\[
+\boxed{\;\mathbf{E}=-\nabla\Phi-\frac{\partial \mathbf{A}}{\partial t}\;}
+\]
+這一式將電場分解為\;{\it 靜電部分}\;($-\nabla\Phi$) 與\;{\it 感應部分}\;($-\partial_t\mathbf{A}$)。
+
+\section*{規範自由度（Gauge Freedom）}
+勢函數不是唯一的。對任意標量函數 $\chi(\mathbf{r},t)$，變換
+\[
+\mathbf{A}'=\mathbf{A}+\nabla\chi,
+\qquad
+\Phi'=\Phi-\frac{\partial\chi}{\partial t}
+\]
+可保持 $\mathbf{E}$ 與 $\mathbf{B}$ 不變（容易驗證 $\mathbf{B}'=\nabla\times\mathbf{A}'=\mathbf{B}$，
+且 $\mathbf{E}'=-\nabla\Phi'-\partial_t\mathbf{A}'=\mathbf{E}$）。
+常見選擇如 Lorenz 規範 $\nabla\cdot\mathbf{A}+\mu\varepsilon\,\partial_t\Phi=0$ 或 Coulomb 規範 $\nabla\cdot\mathbf{A}=0$，
+用來簡化方程的耦合。
+
+\section*{直觀註解}
+\(-\nabla\Phi\) 來自電荷分佈（靜電勢），
+\(-\partial_t\mathbf{A}\) 對應隨時間變化的磁場所誘發的感應電場（法拉第定律）。
+二者共同構成一般情況下的電場。
+
+\section*{1.~數學上的角色}
+
+定義：
+\[
+\mathbf{B} = \nabla \times \mathbf{A}.
+\]
+因為
+\(\nabla\cdot \mathbf{B} = 0\)，必定存在這樣的向量勢 \(\mathbf{A}\)。
+
+再引入純量勢 \(\Phi\)，我們也能寫出
+\[
+\mathbf{E} = -\nabla \Phi - \frac{\partial \mathbf{A}}{\partial t}.
+\]
+
+因此 \((\Phi,\mathbf{A})\) 是場的「勢函數」，能把四個麥斯威爾方程壓縮成兩個波動方程。
+
+\section*{2.~在經典電磁學的物理意義}
+
+在大多數情況下，\(\mathbf{A}\) 被視為「方便的中介」，因為 \(\mathbf{E},\mathbf{B}\) 才是直接可測量的量。
+
+然而 \(\mathbf{A}\) 仍有直觀的物理詮釋：
+
+在靜態情況下（\(\partial_t \mathbf{A} = 0\)），\(\mathbf{A}\) 對應於電流分佈的「分佈型磁效應」。例如：
+\[
+\mathbf{A}(\mathbf{r}) = \frac{\mu_0}{4\pi} \int \frac{\mathbf{J}(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|}\,d^3r',
+\]
+這形式與電勢
+\[
+\Phi(\mathbf{r}) = \frac{1}{4\pi\varepsilon_0} \int \frac{\rho(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|}\,d^3r'
+\]
+十分相似。
+
+換句話說，\(\mathbf{A}\) 是「磁場的勢函數」，與電流分佈直接相連。
+
+\section*{向量勢與電流分佈的直接相連}
+
+\subsection*{1. 向量勢的波動方程}
+
+在 Lorenz 規範下，向量勢 $\mathbf{A}$ 滿足
+\begin{equation}
+\nabla^{2}\mathbf{A} - \mu\varepsilon\,\frac{\partial^{2}\mathbf{A}}{\partial t^{2}}
+= -\mu\,\mathbf{J}.
+\label{eq:Awave}
+\end{equation}
+
+右邊的源項就是電流密度 $\mathbf{J}$ 本身，沒有再經過任何空間或時間導數。
+
+因此 $\mathbf{A}$ 可以直接由電流分佈給出推遲勢解：
+\begin{equation}
+\mathbf{A}(\mathbf{r},t)
+= \frac{\mu}{4\pi}\int \frac{\mathbf{J}\!\left(\mathbf{r}',\,t-\tfrac{|\mathbf{r}-\mathbf{r}'|}{v}\right)}
+{|\mathbf{r}-\mathbf{r}'|}\,d^3r', \qquad v=\frac{1}{\sqrt{\mu\varepsilon}}.
+\end{equation}
+
+---
+
+\subsection*{2. 場的波動方程比較}
+
+\begin{align}
+\nabla^2 \mathbf{E}-\mu\varepsilon\,\frac{\partial^2 \mathbf{E}}{\partial t^2}
+&=\nabla\!\left(\frac{\rho}{\varepsilon}\right)+\mu\,\frac{\partial \mathbf{J}}{\partial t},
+\\[6pt]
+\nabla^2 \mathbf{B}-\mu\varepsilon\,\frac{\partial^2 \mathbf{B}}{\partial t^2}
+&=-\mu\,\nabla\times\mathbf{J}.
+\end{align}
+
+這裡電場 $\mathbf{E}$ 與磁場 $\mathbf{B}$ 的源項包含了
+\(\nabla\rho\)、\(\partial_t \mathbf{J}\)、\(\nabla\times\mathbf{J}\) 等導數，
+因此不是單純的 $\rho,\mathbf{J}$。
+
+---
+
+\subsection*{3. 比較表}
+
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|>{\raggedright}m{4cm}|>{\raggedright}m{5cm}|>{\raggedright\arraybackslash}m{5cm}|}
+\hline
+ & \textbf{向量勢 $\mathbf{A}$} & \textbf{電場/磁場 $\mathbf{E},\mathbf{B}$} \\
+\hline
+波動方程右邊的源 &
+$-\mu\,\mathbf{J}$（電流本身） &
+$\nabla\rho,\ \partial_t \mathbf{J},\ \nabla\times\mathbf{J}$ 等導數 \\
+\hline
+與電流的關係 &
+\emph{直接相連}：知道 $\mathbf{J}$，即可積分得 $\mathbf{A}$ &
+\emph{間接相連}：需要經過導數或時間變化才能得到源項 \\
+\hline
+解法便利性 &
+可直接用格林函數求推遲勢 (retarded potentials) &
+通常透過勢來解，再由 $\mathbf{E}=-\nabla\Phi-\partial_t\mathbf{A}$、$\mathbf{B}=\nabla\times\mathbf{A}$ 還原 \\
+\hline
+\end{tabular}
+
+---
+
+\subsection*{4. 意義}
+所謂「\textbf{直接相連}」就是指：
+\begin{quote}
+在數學上，$\mathbf{A}$ 的源項就是電流密度 $\mathbf{J}$，沒有額外的導數。
+因此 $\mathbf{A}$ 能夠以一個簡單的推遲積分形式直接由電流分佈決定。
+相對地，$\mathbf{E},\mathbf{B}$ 的波動方程則包含 $\rho,\mathbf{J}$ 的導數，與源之間的關係較為間接。
+\end{quote}
+\section*{1.~方程回顧}
+徑向對稱下（$A_x=A_x(r)$），Helmholtz 方程化為
+\begin{equation}
+\frac{1}{r^2}\frac{d}{dr}\!\left(r^2 \frac{dA_x}{dr}\right)+\beta^2 A_x=0.
+\label{eq:radial}
+\end{equation}
+
+\section*{2.~消去一階項的代換}
+令
+\[
+A_x(r)=\frac{u(r)}{r}.
+\]
+代入 \eqref{eq:radial} 並化簡可得
+\[
+\frac{1}{r}\Bigl(u''+\beta^2 u\Bigr)=0
+\;\;\Longrightarrow\;\;
+u''+\beta^2 u=0.
+\]
+
+\section*{3.~求解 $u(r)$ 與還原 $A_x(r)$}
+常係數二階常微分方程
+\(
+u''+\beta^2 u=0
+\)
+的通解為
+\[
+u(r)=C_1 e^{-j\beta r}+C_2 e^{+j\beta r}.
+\]
+故
+\[
+\boxed{\;
+A_x(r)=\frac{C_1 e^{-j\beta r}}{r}+\frac{C_2 e^{+j\beta r}}{r}\;}.
+\]
+
+\section*{4.~物理解讀與常見邊界條件}
+\begin{itemize}
+  \item $e^{-j\beta r}/r$：\emph{向外傳播的球面波}（輻射場），振幅隨 $1/r$ 衰減。
+  \item $e^{+j\beta r}/r$：\emph{向內傳播的球面波}（收斂波）。
+  \item \textbf{Sommerfeld 輻射條件}（只允許外傳波）時，取 $C_2=0$，得
+  \[
+  A_x(r)=\frac{C\,e^{-j\beta r}}{r}.
+  \]
+  \item 在原點 $r\to 0$ 的正則性：$1/r$ 型解在 $r=0$ 發散，表示此通解適用於\emph{源外區域}（$r>0$）；若含源需改用格林函數或分段解並配合匹配條件。
+\end{itemize}
+\section*{1.~從柱坐標下的亥姆霍茲方程開始}
+在柱坐標 $(\rho,\phi,z)$ 中，假設場量只依賴徑向 $\rho$，則亥姆霍茲方程
+\[
+\nabla^2 A + \beta^2 A = 0
+\]
+化為
+\[
+\frac{1}{\rho}\frac{d}{d\rho}\!\left(\rho \frac{dA}{d\rho}\right) + \beta^2 A = 0.
+\]
+這就是零階貝索方程 (Bessel equation of order 0)。
+
+\section*{2.~方程形式}
+展開得
+\[
+\frac{d^2 A}{d\rho^2} + \frac{1}{\rho}\frac{dA}{d\rho} + \beta^2 A = 0,
+\]
+這正是零階 Bessel 方程：
+\[
+A''(\rho) + \frac{1}{\rho} A'(\rho) + \beta^2 A(\rho) = 0.
+\]
+
+\section*{3.~一般解：Bessel 函數}
+一般解可寫成
+\[
+A(\rho) = C_1 J_0(\beta\rho) + C_2 Y_0(\beta\rho),
+\]
+其中 $J_0, Y_0$ 分別是零階第一、二類 Bessel 函數。
+
+\section*{4.~漸近形式（大 $\rho$ 時）}
+當 $\rho \to \infty$，Bessel 函數的漸近式為
+\[
+J_0(\beta\rho) \sim \sqrt{\tfrac{2}{\pi \beta \rho}} \cos\!\left(\beta\rho - \tfrac{\pi}{4}\right),
+\]
+\[
+Y_0(\beta\rho) \sim \sqrt{\tfrac{2}{\pi \beta \rho}} \sin\!\left(\beta\rho - \tfrac{\pi}{4}\right).
+\]
+
+把正弦、餘弦組合成指數形式，可得
+\[
+A(\rho) \sim \rho^{-1/2}\Big[C_1 e^{-j\beta\rho} + C_2 e^{j\beta\rho}\Big].
+\]
+
+\section*{5.~物理意義}
+\begin{itemize}
+    \item $e^{-j\beta\rho}$：向外傳播的柱面波。
+    \item $e^{+j\beta\rho}$：向內傳播的柱面波。
+    \item $\rho^{-1/2}$：振幅衰減因子。\\
+    對比球面波是 $1/r$ 衰減（能量分散在球面上），柱面波能量分散在圓柱曲面上，故衰減為 $1/\sqrt{\rho}$。
+\end{itemize}
+
+\section*{總結}
+柱面波的「通解」最嚴謹的形式是
+\[
+A(\rho) = C_1 J_0(\beta\rho) + C_2 Y_0(\beta\rho).
+\]
+在遠場近似（大 $\rho$），Bessel 函數漸近式化為 $\rho^{-1/2}$ 乘上指數波，
+這就得到
+\[
+A(\rho) \sim \rho^{-1/2}\Big(C_1 e^{-j\beta\rho} + C_2 e^{j\beta\rho}\Big).
+\]
+\section{ideal dipole}
+We have
+\[
+\mathbf{E} = \frac{1}{j\omega \varepsilon} \, \nabla \times \mathbf{H}.
+\]
+
+For a Hertzian dipole, the magnetic field is
+\[
+\mathbf{H} = \frac{I \Delta z}{4\pi}
+\left( \frac{j\beta}{r} + \frac{1}{r^{2}} \right)
+e^{-j\beta r} \, \sin\theta \, \hat{\boldsymbol\phi}.
+\]
+
+Since only $H_\phi$ is nonzero, the curl in spherical coordinates yields
+\[
+E_r = \frac{1}{j\omega\varepsilon}\,\frac{2\cos\theta}{r}\,H_\phi
+= \frac{\eta I\Delta z}{4\pi} \, e^{-jkr} \,
+2\cos\theta \left( \frac{1}{r^{2}} - \frac{j}{kr^{3}} \right),
+\]
+\[
+E_\theta = -\frac{1}{j\omega\varepsilon}\,
+\frac{\sin\theta}{r} \,\frac{\partial}{\partial r}\big(rH_\phi\big)
+= \frac{\eta I\Delta z}{4\pi} \, e^{-jkr} \,
+\sin\theta \left( \frac{jk}{r} + \frac{1}{r^{2}} - \frac{j}{kr^{3}} \right),
+\]
+\[
+E_\phi = 0,
+\]
+where $k=\beta$ and
+\[
+\eta = \sqrt{\frac{\mu}{\varepsilon}}, \qquad 
+\frac{1}{j\omega\varepsilon} = \frac{\eta}{jk}.
+\]
+
+---
+
+\textbf{Far-field approximation ($kr\gg1$):}
+\[
+\mathbf{E} \;\approx\; \frac{\eta I\Delta z}{4\pi}\,
+\frac{jk\, e^{-jkr}}{r}\,\sin\theta\,\hat{\boldsymbol\theta},
+\]
+\[
+\mathbf{H} \;\approx\; \frac{I\Delta z}{4\pi}\,
+\frac{jk\, e^{-jkr}}{r}\,\sin\theta\,\hat{\boldsymbol\phi},
+\]
+with
+\[
+\mathbf{E} = \eta \, \hat{\boldsymbol\theta} \times \mathbf{H}.
+\]
+\section*{Induction vs. Radiation Fields}
+
+\subsection*{1. Induction (Near Field)}
+\begin{itemize}
+  \item \textbf{Region:} Very close to the source ($r \ll \lambda$).
+  \item \textbf{Field behavior:} Fields are mainly \emph{reactive}, i.e.\ energy is stored in the electric and magnetic fields but not radiated away. 
+    \begin{itemize}
+      \item $\mathbf{E}$ and $\mathbf{H}$ are generally out of phase.
+      \item Energy oscillates back and forth between source and field, similar to inductors/capacitors.
+    \end{itemize}
+  \item \textbf{Dominant component:} 
+    \begin{itemize}
+      \item Magnetic field dominates near small current loops.
+      \item Electric field dominates near short dipoles.
+    \end{itemize}
+  \item \textbf{Power flow:} No net power carried away, mostly local energy storage.
+\end{itemize}
+
+\subsection*{2. Radiation (Far Field)}
+\begin{itemize}
+  \item \textbf{Region:} Far from the source ($r \gg \lambda$).
+  \item \textbf{Field behavior:} Fields are \emph{radiative}, i.e.\ traveling waves.
+    \begin{itemize}
+      \item $\mathbf{E}$ and $\mathbf{H}$ are in phase and mutually perpendicular:
+      \[
+      \mathbf{E} \perp \mathbf{H} \perp \hat{r}.
+      \]
+      \item They form a transverse electromagnetic (TEM) wave.
+    \end{itemize}
+  \item \textbf{Dominant component:} Both $\mathbf{E}$ and $\mathbf{H}$ contribute equally, related by the wave impedance of free space:
+    \[
+    \frac{E}{H} = 377~\Omega.
+    \]
+  \item \textbf{Power flow:} Real power is carried away from the source, spreading out as radiation.
+\end{itemize}
+
+\subsection*{3. Transition Zone (Fresnel Region)}
+\begin{itemize}
+  \item \textbf{Region:} Intermediate distances ($r \sim \lambda$).
+  \item \textbf{Behavior:} Mixture of reactive (induction) and radiative characteristics.
+  \item \textbf{Applications:} Important in antenna measurement and radar.
+\end{itemize}
+
+\subsection*{Summary}
+\[
+\text{Induction field: near, reactive, energy stored.}
+\]
+\[
+\text{Radiation field: far, propagating, energy carried away.}
+\]
+\section*{餘弦定理推導}
+
+考慮任意三角形 $ABC$，三邊分別為 $a, b, c$，其中角 $C$ 為夾在邊 $a$ 與 $b$ 之間的角。  
+為了方便推導，我們將三角形放置於座標平面上：
+
+\[
+A(0,0), \quad B(b,0), \quad C(x,y)
+\]
+
+則三邊長為：
+\[
+AB = b, \quad AC = \sqrt{x^2 + y^2} = a, \quad BC = \sqrt{(x-b)^2 + y^2} = c.
+\]
+
+---
+
+\subsection*{1. 由向量定義出發}
+
+向量：
+\[
+\overrightarrow{CA} = (-x, -y), \quad
+\overrightarrow{CB} = (b - x, -y)
+\]
+
+根據餘弦定義：
+\[
+\overrightarrow{CA} \cdot \overrightarrow{CB} = ab\cos C
+\]
+
+計算內積：
+\[
+(-x)(b - x) + (-y)(-y) = x^2 + y^2 - bx
+\]
+因此：
+\[
+ab\cos C = x^2 + y^2 - bx
+\]
+
+---
+
+\subsection*{2. 由幾何關係求 $c^2$}
+
+邊 $c$ 的平方為：
+\[
+c^2 = (x - b)^2 + y^2 = x^2 - 2bx + b^2 + y^2
+\]
+代入 $x^2 + y^2 = a^2$：
+\[
+c^2 = a^2 + b^2 - 2bx
+\]
+
+又由幾何關係可得 $x = a\cos C$，因此：
+\[
+\boxed{
+c^2 = a^2 + b^2 - 2ab\cos C
+}
+\]
+
+---
+
+\subsection*{3. 幾何意義}
+
+\begin{itemize}
+  \item 當 $C = 90^\circ$ 時，$\cos C = 0$，得 $c^2 = a^2 + b^2$，即畢氏定理。
+  \item 當 $C < 90^\circ$ 時，$\cos C > 0$，故 $c^2 < a^2 + b^2$。
+  \item 當 $C > 90^\circ$ 時，$\cos C < 0$，故 $c^2 > a^2 + b^2$。
+\end{itemize}
+\section*{Taylor Series}
+
+若函數 $f(x)$ 在 $x=a$ 附近具有各階導數，則其泰勒展開式為：
+\[
+f(x) = \sum_{n=0}^{\infty} \frac{f^{(n)}(a)}{n!}(x - a)^n
+\]
+
+其中 $f^{(n)}(a)$ 表示函數在 $x=a$ 處的第 $n$ 階導數。
+
+---
+
+\subsection*{Maclaurin 展開（$a=0$）}
+
+\[
+f(x) = f(0) + f'(0)x + \frac{f''(0)}{2!}x^2 + \frac{f^{(3)}(0)}{3!}x^3 + \cdots
+\]
+\section*{常見函數的泰勒展開}
+\section*{Far-Field Approximation of $R$ Using Taylor (Binomial) Expansion}
+
+\subsection*{Step 1. Start from the exact expression}
+
+根據幾何關係：
+\[
+R = \sqrt{r^2 + z'^2 - 2r z' \cos\theta}
+\]
+我們希望在遠場條件 $z' \ll r$ 下，將 $R$ 展開成可近似的形式。
+
+---
+
+\subsection*{Step 2. Factor out $r^2$}
+
+\[
+R = r \sqrt{1 + \left(\frac{z'}{r}\right)^2 - 2\frac{z'}{r}\cos\theta}
+\]
+定義一個小量：
+\[
+x = \left(\frac{z'}{r}\right)^2 - 2\frac{z'}{r}\cos\theta
+\]
+則：
+\[
+R = r(1 + x)^{1/2}
+\]
+
+---
+
+\subsection*{Step 3. Expand using the Taylor (binomial) series}
+
+根據二項式展開式：
+\[
+(1+x)^{1/2} \approx 1 + \frac{1}{2}x - \frac{1}{8}x^2 + \cdots
+\]
+代入得：
+\[
+R = r\left[1 + \frac{1}{2}x - \frac{1}{8}x^2 + \cdots \right]
+\]
+
+---
+
+\subsection*{Step 4. Substitute $x = \left(\dfrac{z'}{r}\right)^2 - 2\dfrac{z'}{r}\cos\theta$}
+
+\[
+\begin{aligned}
+R &= r\left\{1 + \frac{1}{2}\left[\left(\frac{z'}{r}\right)^2 - 2\frac{z'}{r}\cos\theta\right]
+- \frac{1}{8}\left[\left(\frac{z'}{r}\right)^2 - 2\frac{z'}{r}\cos\theta\right]^2 + \cdots \right\} \\
+&= r\left\{1 - \frac{z'}{r}\cos\theta + \frac{1}{2}\left(\frac{z'}{r}\right)^2
+- \frac{1}{8}\left[\left(\frac{z'}{r}\right)^2 - 2\frac{z'}{r}\cos\theta\right]^2 + \cdots \right\}
+\end{aligned}
+\]
+
+---
+
+\subsection*{Step 5. Simplify higher-order terms}
+
+展開並重新整理可得：
+\[
+R = r\left\{1 - \frac{z'}{r}\cos\theta
++ \left(\frac{z'}{r}\right)^2\left[\frac{1}{2} - \frac{\cos^2\theta}{2}\right] + \cdots \right\}
+\]
+
+---
+
+\subsection*{Step 6. Far-field approximation}
+
+由於 $z'/r \ll 1$，高階項 $(z'/r)^2$ 可忽略，故：
+\[
+\boxed{R \approx r - z'\cos\theta}
+\]
+
+---
+
+\subsection*{Step 7. Physical interpretation}
+
+\begin{itemize}
+    \item $r$：觀察點與原點的距離。
+    \item $z'\cos\theta$：天線上微小電流元相對於觀察方向的距離修正量。
+\end{itemize}
+
+因此，在計算輻射場的相位項（例如 $e^{-jkR}$）時，可保留主要的相位變化項：
+\[
+e^{-jkR} \approx e^{-jkr} e^{+jkz'\cos\theta}.
+\]
+
+這使得有限偶極天線的積分推導大幅簡化。
+
+
+\section*{從三維電流密度積分到偶極線電流積分的推導}
+
+由磁向量位的定義式：
+\[
+A_z = \int \frac{J_z(\mathbf{r}')\, e^{-j\beta R}}{4\pi R}\, dV',
+\]
+其中
+\[
+R = |\mathbf{r} - \mathbf{r}'| = \sqrt{r^2 + z'^2 - 2r z'\cos\theta}.
+\]
+
+---
+
+\subsection*{(1) 假設為細長偶極天線}
+
+對於一條沿 $z$ 軸的細長導線（半徑遠小於波長），
+電流僅沿 $z$ 方向流動，且分佈於 $(x',y')=(0,0)$。
+因此電流密度可寫為：
+\[
+J_z(\mathbf{r}') = I(z')\,\delta(x')\,\delta(y'),
+\]
+其中 $I(z')$ 為導線上的總電流，
+$\delta(\cdot)$ 為 Dirac delta 函數。
+
+---
+
+\subsection*{(2) 將三維體積積分簡化為一維線積分}
+
+因為 $dV' = dx'\,dy'\,dz'$，代入上式得：
+\[
+A_z = \int \frac{e^{-j\beta R}}{4\pi R} I(z')\,\delta(x')\,\delta(y')\, dx'\,dy'\,dz'.
+\]
+
+對 $x'$、$y'$ 積分：
+\[
+\int \delta(x')\,dx' = 1, \quad
+\int \delta(y')\,dy' = 1,
+\]
+留下 $z'$ 的積分：
+\[
+A_z = \int \frac{I(z')\, e^{-j\beta R}}{4\pi R}\, dz'.
+\]
+
+---
+
+\subsection*{(3) 遠場近似：$R \approx r - z'\cos\theta$}
+
+在觀察點距離遠大於天線長度時 ($r \gg z'$)，
+可令
+\[
+R \approx r - z'\cos\theta.
+\]
+此外，分母的 $R$ 變化極小，
+因此可在分母中直接以 $r$ 取代：
+\[
+\frac{e^{-j\beta R}}{R}
+\approx
+\frac{e^{-j\beta (r - z'\cos\theta)}}{r}
+= \frac{e^{-j\beta r}}{r} e^{j\beta z'\cos\theta}.
+\]
+
+---
+
+\subsection*{(4) 代回積分式}
+
+\[
+A_z = \int \frac{I(z')\, e^{-j\beta (r - z'\cos\theta)}}{4\pi r}\, dz'
+= \frac{e^{-j\beta r}}{4\pi r}
+\int I(z')\, e^{j\beta z'\cos\theta}\, dz'.
+\]
+
+---
+
+\subsection*{(5) 物理意義}
+
+\begin{itemize}
+  \item $I(z')$：導線上的電流分佈。
+  \item $\dfrac{e^{-j\beta r}}{4\pi r}$：由原點至觀察點的共同相位與球面衰減項。
+  \item $e^{j\beta z'\cos\theta}$：天線上不同位置 $z'$ 對應的相位差。
+\end{itemize}
+
+因此整個積分
+\[
+\int I(z') e^{j\beta z'\cos\theta} dz'
+\]
+描述了電流分佈的「空間傅立葉變換」，
+決定了天線的方向性與輻射場型。
+
+---
+
+\[
+\boxed{
+A_z = \frac{e^{-j\beta r}}{4\pi r}
+\int I(z') e^{j\beta z'\cos\theta} dz'.
+}
+\]
+
+\end{document}

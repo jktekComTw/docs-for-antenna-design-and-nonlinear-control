@@ -1,0 +1,353 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{xeCJK}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\geometry{margin=2.5cm}
+\setCJKmainfont{Noto Sans CJK TC}
+
+% 程式碼樣式設定
+\lstset{
+    backgroundcolor=\color{gray!10},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    showstringspaces=false,
+    language=bash
+}
+
+% 自定義 YAML 語言支援
+\lstdefinelanguage{yaml}{
+    keywords={network, version, ethernets, vlans, id, link, addresses, dhcp4},
+    keywordstyle=\color{blue}\bfseries,
+    ndkeywords={true, false},
+    ndkeywordstyle=\color{red}\bfseries,
+    identifierstyle=\color{black},
+    sensitive=false,
+    comment=[l]{\#},
+    commentstyle=\color{gray}\ttfamily,
+    stringstyle=\color{orange}\ttfamily,
+    morestring=[b]',
+    morestring=[b]"
+}
+
+\title{單線復用 VLAN 技術實作指南}
+\author{網路技術文件}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{VLAN 基本概念}
+
+\subsection{定義}
+單線復用 VLAN (Virtual Local Area Network) 是指在一條物理網路線上同時傳輸多個虛擬區域網路的技術。
+
+\subsection{技術特點}
+\begin{itemize}
+    \item 使用 802.1Q 標準協定
+    \item 透過 VLAN 標籤 (Tag) 區分不同網路
+    \item Trunk 連接方式承載多個 VLAN
+    \item 提高網路資源使用效率
+\end{itemize}
+
+\section{交換器設定}
+
+\subsection{Cisco 交換器設定}
+
+\begin{lstlisting}[caption=Cisco Trunk 設定]
+# 進入介面設定模式
+interface FastEthernet0/1
+
+# 設定為 trunk 模式
+switchport mode trunk
+
+# 允許特定 VLAN 通過
+switchport trunk allowed vlan 10,20,30
+
+# 設定原生 VLAN (untagged)
+switchport trunk native vlan 1
+
+# 套用設定
+exit
+\end{lstlisting}
+
+\subsection{HP/Aruba 交換器設定}
+
+\begin{lstlisting}[caption=HP/Aruba Trunk 設定]
+# 設定 trunk
+interface ethernet 1/1
+tagged vlan 10,20,30
+untagged vlan 1
+exit
+\end{lstlisting}
+
+\section{Linux 系統 VLAN 設定}
+
+\subsection{使用 ip 指令}
+
+\begin{lstlisting}[caption=建立 VLAN 介面]
+# 載入 VLAN 模組
+sudo modprobe 8021q
+
+# 在 eth0 上建立 VLAN 10
+sudo ip link add link eth0 name eth0.10 type vlan id 10
+sudo ip link set dev eth0.10 up
+sudo ip addr add 192.168.10.1/24 dev eth0.10
+
+# 建立 VLAN 20
+sudo ip link add link eth0 name eth0.20 type vlan id 20
+sudo ip link set dev eth0.20 up
+sudo ip addr add 192.168.20.1/24 dev eth0.20
+\end{lstlisting}
+
+\subsection{使用 vconfig (舊方法)}
+
+\begin{lstlisting}[caption=vconfig 設定方法]
+# 建立 VLAN 介面
+sudo vconfig add eth0 10
+sudo vconfig add eth0 20
+
+# 設定 IP 位址
+sudo ifconfig eth0.10 192.168.10.1 netmask 255.255.255.0 up
+sudo ifconfig eth0.20 192.168.20.1 netmask 255.255.255.0 up
+\end{lstlisting}
+
+\section{網路介面設定檔}
+
+\subsection{Ubuntu/Debian Netplan 設定}
+
+\begin{lstlisting}[caption=/etc/netplan/01-netcfg.yaml,language=yaml]
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: false
+  vlans:
+    vlan10:
+      id: 10
+      link: eth0
+      addresses: [192.168.10.1/24]
+    vlan20:
+      id: 20
+      link: eth0
+      addresses: [192.168.20.1/24]
+\end{lstlisting}
+
+\subsection{CentOS/RHEL 設定}
+
+\begin{lstlisting}[caption=ifcfg-eth0.10]
+DEVICE=eth0.10
+BOOTPROTO=static
+IPADDR=192.168.10.1
+NETMASK=255.255.255.0
+VLAN=yes
+ONBOOT=yes
+\end{lstlisting}
+
+\begin{lstlisting}[caption=ifcfg-eth0.20]
+DEVICE=eth0.20
+BOOTPROTO=static
+IPADDR=192.168.20.1
+NETMASK=255.255.255.0
+VLAN=yes
+ONBOOT=yes
+\end{lstlisting}
+
+\section{網路架構範例}
+
+\subsection{典型架構}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{元件} & \textbf{功能} \\
+\hline
+路由器 & 提供網際網路連接 \\
+\hline
+Trunk 線路 (eth0) & 承載所有 VLAN 流量 \\
+\hline
+Linux 伺服器 & VLAN 終端設備 \\
+\hline
+VLAN 10 & 管理網路 \\
+\hline
+VLAN 20 & 使用者網路 \\
+\hline
+VLAN 30 & DMZ 網路 \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{驗證與監控}
+
+\subsection{VLAN 設定驗證}
+
+\begin{lstlisting}[caption=檢查 VLAN 設定]
+# 檢查 VLAN 介面
+ip link show | grep vlan
+cat /proc/net/vlan/config
+
+# 測試連線
+ping -I eth0.10 192.168.10.1
+ping -I eth0.20 192.168.20.1
+
+# 檢查路由表
+ip route show table all
+\end{lstlisting}
+
+\subsection{流量監控}
+
+\begin{lstlisting}[caption=監控 VLAN 流量]
+# 監控各 VLAN 流量
+iftop -i eth0.10
+iftop -i eth0.20
+
+# 檢查頻寬使用
+vnstat -i eth0.10
+vnstat -i eth0.20
+
+# 封包擷取
+tcpdump -i eth0 -e  # 查看 VLAN 標籤
+\end{lstlisting}
+
+\section{進階設定}
+
+\subsection{VLAN 間路由}
+
+\begin{lstlisting}[caption=啟用 VLAN 間路由]
+# 啟用 IP 轉發
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+# 設定 iptables 規則
+iptables -A FORWARD -i eth0.10 -o eth0.20 -j ACCEPT
+iptables -A FORWARD -i eth0.20 -o eth0.10 -j ACCEPT
+\end{lstlisting}
+
+\subsection{服務品質 (QoS) 設定}
+
+\begin{lstlisting}[caption=VLAN QoS 設定]
+# 設定 VLAN 優先級
+sudo vconfig set_egress_map eth0.10 0 1
+
+# 流量控制
+sudo tc qdisc add dev eth0.10 root handle 1: htb default 30
+sudo tc class add dev eth0.10 parent 1: classid 1:1 htb rate 100mbit
+\end{lstlisting}
+
+\section{OpenWrt 路由器設定}
+
+\subsection{網路設定檔}
+
+\begin{lstlisting}[caption=/etc/config/network]
+config interface 'vlan10'
+    option ifname 'eth0.10'
+    option proto 'static'
+    option ipaddr '192.168.10.1'
+    option netmask '255.255.255.0'
+
+config interface 'vlan20'
+    option ifname 'eth0.20'
+    option proto 'static'
+    option ipaddr '192.168.20.1'
+    option netmask '255.255.255.0'
+\end{lstlisting}
+
+\section{疑難排解}
+
+\subsection{常見問題}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|p{4cm}|p{8cm}|}
+\hline
+\textbf{問題} & \textbf{解決方法} \\
+\hline
+VLAN 不通 & 檢查 8021q 模組是否載入 \\
+& \texttt{lsmod | grep 8021q} \\
+\hline
+無法 ping 通 & 檢查交換器 trunk 設定 \\
+& 確認 VLAN ID 設定正確 \\
+\hline
+效能問題 & 使用 \texttt{ethtool} 檢查網卡設定 \\
+& 檢查 CPU 使用率 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{除錯指令}
+
+\begin{lstlisting}[caption=VLAN 除錯]
+# 檢查 VLAN 模組
+lsmod | grep 8021q
+
+# 檢查介面狀態
+ethtool eth0
+
+# 監控封包
+tcpdump -i eth0 -e vlan
+
+# 檢查路由
+route -n
+ip route show
+\end{lstlisting}
+
+\section{效能優化}
+
+\subsection{網路介面優化}
+
+\begin{lstlisting}[caption=效能調整]
+# 調整網路緩衝區
+echo 'net.core.rmem_max = 16777216' >> /etc/sysctl.conf
+echo 'net.core.wmem_max = 16777216' >> /etc/sysctl.conf
+
+# 套用設定
+sysctl -p
+
+# 調整網卡設定
+ethtool -K eth0 tx off rx off
+ethtool -K eth0 tso off gso off
+\end{lstlisting}
+
+\section{安全考量}
+
+\subsection{VLAN 安全設定}
+
+\begin{itemize}
+    \item 設定適當的防火牆規則
+    \item 限制 VLAN 間通訊
+    \item 定期更新交換器韌體
+    \item 監控異常流量
+\end{itemize}
+
+\begin{lstlisting}[caption=防火牆規則範例]
+# 禁止特定 VLAN 間通訊
+iptables -A FORWARD -i eth0.10 -o eth0.30 -j DROP
+iptables -A FORWARD -i eth0.30 -o eth0.10 -j DROP
+
+# 記錄可疑流量
+iptables -A FORWARD -j LOG --log-prefix "VLAN_TRAFFIC: "
+\end{lstlisting}
+
+\section{總結}
+
+單線復用 VLAN 技術能夠有效提升網路資源使用效率，透過適當的設定可以在單一實體線路上建立多個邏輯網路區段。重點包括：
+
+\begin{enumerate}
+    \item 正確設定交換器 trunk 連接埠
+    \item 在終端設備上建立對應的 VLAN 介面
+    \item 適當配置路由和防火牆規則
+    \item 定期監控和維護網路效能
+\end{enumerate}
+
+\end{document}
