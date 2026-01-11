@@ -968,126 +968,451 @@ K_u=\frac{4h}{\pi a}.
   \item 量測輸出振幅 $a$ 與週期 $P_u$，由 $K_u=\tfrac{4h}{\pi a}$ 推得臨界增益，再套用 Ziegler--Nichols 或其他整定規則得到 PID 參數。
 \end{itemize}
 ================================================================
-這個FM解調器使用$\pi$/4延遲的原理如下：
+\section{The Role of $T/4$ Delay and $\pi/4$ Phase Bias}
 
-\section{FM信號的特性}
+\subsection{Phase Difference Analysis}
 
-FM信號可以表示為：
+Consider a narrowband signal with a slowly varying phase:
 \begin{equation}
-s(t) = A \cos(\omega_c \cdot t + \phi(t))
+s(t)=A\cos\bigl(\omega_c t+\phi(t)\bigr).
 \end{equation}
-其中$\phi(t)$包含調變信息。
 
-\section{$\pi$/4延遲的作用}
+The signal is delayed by a quarter of the carrier period,
+\begin{equation}
+\tau=\frac{T}{4}=\frac{\pi}{2\omega_c},
+\end{equation}
+resulting in
+\begin{equation}
+s(t-\tau)
+= A\cos\!\left(\omega_c t-\frac{\pi}{2}+\phi(t-\tau)\right).
+\end{equation}
 
-\subsection{相位差分析}
-當信號經過$\pi$/4延遲後：
-\begin{itemize}
-    \item 原信號：$s(t) = A \cos(\omega_c \cdot t + \phi(t))$
-    \item 延遲信號：$s\left(t - \frac{\pi}{4\omega_c}\right) = A \cos\left(\omega_c \cdot t - \frac{\pi}{4} + \phi\left(t - \frac{\pi}{4\omega_c}\right)\right)$
-\end{itemize}
+To set the operating point at $\pi/4$, an additional fixed phase bias of $\pi/4$ is applied to the delayed path. The biased signal becomes
+\begin{equation}
+s_b(t)
+= A\cos\!\left(\omega_c t-\frac{\pi}{4}+\phi(t-\tau)\right).
+\end{equation}
 
-\subsection{乘法器的輸出}
-兩信號相乘後：
+\subsection{Multiplier Output}
+
+The product of the original and biased delayed signals is
 \begin{align}
-s(t) \times s\left(t - \frac{\pi}{4\omega_c}\right) &= \frac{A^2}{2} \times \left[\cos\left(2\omega_c \cdot t - \frac{\pi}{4} + \phi(t) + \phi\left(t - \frac{\pi}{4\omega_c}\right)\right)\right. \nonumber \\
-&\quad \left.+ \cos\left(\frac{\pi}{4} - \phi(t) + \phi\left(t - \frac{\pi}{4\omega_c}\right)\right)\right]
+s(t)\,s_b(t)
+&= \frac{A^2}{2}
+\Bigl[
+\cos\!\left(2\omega_c t-\frac{\pi}{4}
++\phi(t)+\phi(t-\tau)\right)
+\nonumber\\
+&\quad
++\cos\!\left(\frac{\pi}{4}
+-\bigl[\phi(t)-\phi(t-\tau)\bigr]\right)
+\Bigr].
 \end{align}
 
-\subsection{低通濾波後}
-高頻項被濾除，剩下：
+\subsection{Low-Pass Filtered Output}
+
+After low-pass filtering, the high-frequency component is removed, leaving
 \begin{equation}
-\text{Output} \propto \cos\left(\frac{\pi}{4} - \left[\phi(t) - \phi\left(t - \frac{\pi}{4\omega_c}\right)\right]\right)
+\text{Output}
+\propto
+\cos\!\left(\frac{\pi}{4}-\Delta\phi(t)\right),
+\end{equation}
+where
+\begin{equation}
+\Delta\phi(t)=\phi(t)-\phi(t-\tau).
 \end{equation}
 
-\section{為什麼選擇$\pi$/4？\{should be modiffied to T/4\}}
+\section{Why Choose $T/4$ and a $\pi/4$ Operating Point}
 
-\subsection{最佳靈敏度}
-\begin{itemize}
-    \item 在$\pi$/4相位差處，cos函數的斜率最大
-    \item 提供最佳的相位變化到電壓變化的轉換靈敏度
-    \item 線性度在小信號範圍內最好
-\end{itemize}
+\subsection{Optimal Sensitivity}
 
-\subsection{數學最佳化}
-對於小的相位變化$\Delta\phi$：
+The $T/4$ delay introduces a $\pi/2$ carrier phase shift, ensuring quadrature between the two signal paths. By applying an additional $\pi/4$ phase bias, the detector operates at a point of high linearity and sensitivity, providing an efficient phase-to-voltage conversion.
+
+\subsection{Small-Signal Approximation}
+
+For small phase variations $\Delta\phi$, the output can be approximated by
 \begin{equation}
-\cos\left(\frac{\pi}{4} - \Delta\phi\right) \approx \cos\left(\frac{\pi}{4}\right) + \sin\left(\frac{\pi}{4}\right) \cdot \Delta\phi = \frac{\sqrt{2}}{2} + \frac{\sqrt{2}}{2} \cdot \Delta\phi
+\cos\!\left(\frac{\pi}{4}-\Delta\phi\right)
+\approx
+\cos\!\left(\frac{\pi}{4}\right)
++\sin\!\left(\frac{\pi}{4}\right)\Delta\phi
+=
+\frac{\sqrt{2}}{2}
++\frac{\sqrt{2}}{2}\,\Delta\phi.
 \end{equation}
 
-$\pi$/4時，$\sin\left(\frac{\pi}{4}\right) = \frac{\sqrt{2}}{2}$為最大值。
+Thus, around the $\pi/4$ operating point, the detector output varies linearly with the phase difference.
 
-\subsection{頻率檢測}
-瞬時頻率偏差：
+\subsection{Frequency Detection}
+
+The instantaneous frequency deviation can be approximated as
 \begin{equation}
-\Delta\omega = \frac{d\phi}{dt} \approx \frac{\phi(t) - \phi(t - T)}{T}
+\Delta\omega(t)
+=\frac{d\phi(t)}{dt}
+\approx
+\frac{\phi(t)-\phi(t-\tau)}{\tau},
 \end{equation}
-其中$T = \frac{\pi}{4\omega_c}$
+with
+\begin{equation}
+\tau=\frac{T}{4}=\frac{\pi}{2\omega_c}.
+\end{equation}
+\section{Advantages of the $T/4$ Delay with $\pi/4$ Phase Bias Detector}
 
-\section{電路優勢}
+\subsection{Maximum Phase Sensitivity}
 
-\subsection{簡單實現}
+The use of a $T/4$ delay introduces a $\pi/2$ carrier phase shift, ensuring quadrature between the two signal paths. When combined with a $\pi/4$ phase bias, the detector operates at a point where the slope of the output with respect to the phase difference is maximized.
+
+Specifically, the detector output is given by
+\begin{equation}
+\text{Output} \propto \cos\!\left(\frac{\pi}{4}-\Delta\phi\right),
+\end{equation}
+whose derivative with respect to $\Delta\phi$ is
+\begin{equation}
+\frac{d}{d(\Delta\phi)}
+\cos\!\left(\frac{\pi}{4}-\Delta\phi\right)
+=
+\sin\!\left(\frac{\pi}{4}-\Delta\phi\right).
+\end{equation}
+
+At the operating point $\Delta\phi=0$, the slope becomes
+\begin{equation}
+\left.\frac{d(\text{Output})}{d(\Delta\phi)}\right|_{\Delta\phi=0}
+=
+\sin\!\left(\frac{\pi}{4}\right)
+=
+\frac{\sqrt{2}}{2},
+\end{equation}
+which represents a high and stable phase-to-voltage conversion gain.
+
+---
+
+\subsection{Improved Linearity for Small Phase Variations}
+
+For small phase differences, the output can be linearized as
+\begin{equation}
+\cos\!\left(\frac{\pi}{4}-\Delta\phi\right)
+\approx
+\frac{\sqrt{2}}{2}
++
+\frac{\sqrt{2}}{2}\Delta\phi.
+\end{equation}
+
+This approximation shows that the detector output consists of a constant bias term and a linear term proportional to the phase difference. Compared to detectors operating at $\Delta\phi=0$ or $\Delta\phi=\pi/2$, the $\pi/4$ operating point provides a wider linear region, making it well suited for small-signal phase and frequency detection.
+
+---
+
+\subsection{Reduced Sensitivity to Amplitude Fluctuations}
+
+Because the two signal paths are orthogonal due to the $T/4$ delay, the low-pass filtered output primarily depends on the phase difference rather than the absolute signal amplitude. Slow amplitude variations affect both paths similarly and are largely canceled by the multiplication and filtering process.
+
+As a result, the detector exhibits improved robustness against:
 \begin{itemize}
-    \item 只需要一個延遲線
-    \item 一個乘法器
-    \item 一個低通濾波器
+\item amplitude modulation,
+\item fading-induced gain variations,
+\item front-end gain mismatch.
 \end{itemize}
 
-\subsection{寬頻帶響應}
+This property is particularly beneficial in practical sensing and communication systems where amplitude stability cannot be guaranteed.
+
+---
+
+\subsection{Enhanced Noise Performance}
+
+The multiplication of the signal with a quadrature-delayed replica effectively performs coherent detection, which improves the signal-to-noise ratio (SNR) of the phase estimate. Furthermore, the low-pass filter suppresses high-frequency noise components around $2\omega_c$, leaving only the slowly varying phase-related term.
+
+Operating at the $\pi/4$ bias point avoids the flat regions of the cosine response, where noise-induced phase fluctuations would produce minimal output variation. This results in improved phase resolution under noisy conditions.
+
+---
+
+\subsection{Suitability for Frequency Detection}
+
+The phase difference obtained from the $T/4$ delay approximates the phase derivative:
+\begin{equation}
+\Delta\phi(t) \approx \tau \frac{d\phi(t)}{dt},
+\end{equation}
+which leads directly to an estimate of the instantaneous frequency deviation:
+\begin{equation}
+\Delta\omega(t)
+\approx
+\frac{\phi(t)-\phi(t-\tau)}{\tau}.
+\end{equation}
+
+Thus, the proposed structure naturally supports frequency discrimination without requiring explicit differentiation, making it attractive for frequency tracking and Doppler sensing applications.
+
+---
+
+\subsection{Implementation Efficiency}
+
+The proposed detector relies only on:
 \begin{itemize}
-    \item 適用於各種調變指數
-    \item 頻率響應相對平坦
+\item a fixed delay of $T/4$,
+\item a constant phase bias,
+\item a single multiplier,
+\item and a low-pass filter.
 \end{itemize}
 
-\subsection{線性度好}
+No trigonometric operations or arctangent computations are required, which significantly reduces implementation complexity. This makes the structure well suited for real-time realization in digital signal processors (DSPs), field-programmable gate arrays (FPGAs), and software-in-the-loop (SIL) simulation frameworks.
+
+---
+
+\subsection{Summary of Advantages}
+
+In summary, the $T/4$ delay with a $\pi/4$ phase bias offers:
 \begin{itemize}
-    \item 在工作範圍內接近線性
-    \item 失真較小
+\item high phase sensitivity,
+\item wide linear operating range,
+\item robustness to amplitude fluctuations,
+\item improved noise performance,
+\item direct frequency discrimination capability,
+\item and low implementation complexity.
 \end{itemize}
 
-\section{實際考量}
+These advantages make the proposed detector particularly suitable for phase- and frequency-based sensing and communication systems.
 
-\subsection{延遲精度}
-$\pi$/4延遲必須精確，通常使用：
+\section{Comparison with Arctangent-Based Phase Estimation}
+
+Phase estimation can also be achieved using arctangent-based methods, which explicitly compute the phase from in-phase and quadrature components. This section compares the proposed $T/4$ delay with $\pi/4$ phase bias detector to conventional arctangent-based phase estimation in terms of sensitivity, linearity, noise robustness, and implementation complexity.
+
+\subsection{Principle of Arctangent-Based Phase Estimation}
+
+In arctangent-based phase estimation, the received signal is first converted into its in-phase and quadrature components:
+\begin{equation}
+I(t) = A\cos\phi(t), \quad Q(t) = A\sin\phi(t).
+\end{equation}
+
+The instantaneous phase is then obtained as
+\begin{equation}
+\hat{\phi}(t) = \tan^{-1}\!\left(\frac{Q(t)}{I(t)}\right).
+\end{equation}
+
+While this approach provides a direct phase estimate, it requires precise quadrature generation, division, and arctangent operations, which increase computational complexity and sensitivity to noise and amplitude imbalance.
+
+---
+
+\subsection{Sensitivity and Linearity}
+
+The proposed detector produces a low-pass output of the form
+\begin{equation}
+\text{Output} \propto \cos\!\left(\frac{\pi}{4}-\Delta\phi\right),
+\end{equation}
+which can be linearized for small phase variations as
+\begin{equation}
+\text{Output} \approx \frac{\sqrt{2}}{2} + \frac{\sqrt{2}}{2}\Delta\phi.
+\end{equation}
+
+In contrast, the arctangent method exhibits a nonlinear response to noise due to the ratio $Q/I$, particularly when $I$ is small. The proposed detector avoids explicit division and maintains a well-defined linear operating region around the $\pi/4$ bias point, resulting in improved small-signal sensitivity.
+
+---
+
+\subsection{Noise Robustness}
+
+In arctangent-based estimation, noise affects both $I$ and $Q$ components, and the nonlinear $\tan^{-1}(\cdot)$ operation can significantly amplify noise, especially near quadrant boundaries. Additionally, phase unwrapping is often required to maintain continuity.
+
+The proposed detector relies on multiplication and low-pass filtering, which naturally suppress high-frequency noise components. By operating away from the extrema of the cosine response, the $\pi/4$ bias point ensures that noise-induced phase fluctuations translate into proportional output variations, enhancing robustness in low-SNR conditions.
+
+---
+
+\subsection{Amplitude Sensitivity}
+
+Arctangent-based methods assume accurate amplitude matching between the $I$ and $Q$ channels. Any gain mismatch or amplitude fading can introduce phase estimation errors.
+
+In contrast, the $T/4$ delay-based detector exhibits reduced sensitivity to amplitude variations because the two signal paths originate from the same signal and differ only by delay and phase bias. Common-mode amplitude fluctuations therefore largely cancel out, making the detector more robust to gain variations and fading.
+
+---
+
+\subsection{Computational and Implementation Complexity}
+
+Arctangent-based phase estimation requires:
 \begin{itemize}
-    \item 傳輸線
-    \item LC延遲線
-    \item 數位延遲
+\item precise quadrature signal generation,
+\item division operations,
+\item arctangent computation,
+\item phase unwrapping logic.
 \end{itemize}
 
-\subsection{頻寬限制}
-延遲時間限制了可解調的最高頻率。
+These operations are computationally expensive and challenging to implement efficiently in fixed-point hardware.
 
-\subsection{溫度穩定性}
-延遲線的溫度係數會影響性能。
+The proposed detector, by contrast, requires only:
+\begin{itemize}
+\item a fixed $T/4$ delay,
+\item a constant phase bias,
+\item a single multiplier,
+\item and a low-pass filter.
+\end{itemize}
 
-\section{性能比較}
+No transcendental functions are required, making the detector highly suitable for real-time implementation in DSPs, FPGAs, and software-in-the-loop (SIL) environments.
 
-\begin{center}
-\begin{tabular}{>{\centering\arraybackslash}m{3cm} >{\raggedright\arraybackslash}m{8cm}}
-\toprule
-\textbf{延遲角度} & \textbf{特性} \\
-\midrule
-0$^{\circ}$ & 無解調輸出 \\
-$\pi$/6 & 靈敏度較低 \\
-$\pi$/4 & \textbf{最佳靈敏度和線性度} \\
-$\pi$/3 & 靈敏度下降 \\
-$\pi$/2 & 零輸出點 \\
-\bottomrule
+---
+
+\subsection{Summary of Comparison}
+
+Table~\ref{tab:comparison_phase_detectors} summarizes the key differences between the proposed detector and arctangent-based phase estimation.
+
+\begin{table}[h]
+\centering
+\caption{Comparison of Phase Estimation Methods}
+\label{tab:comparison_phase_detectors}
+\begin{tabular}{lcc}
+\hline
+\textbf{Aspect} & \textbf{Proposed Method} & \textbf{Arctangent-Based} \\
+\hline
+Phase sensitivity & High (linear near $\pi/4$) & High but nonlinear \\
+Noise robustness & High & Moderate \\
+Amplitude robustness & High & Sensitive to imbalance \\
+Computational complexity & Low & High \\
+Hardware suitability & Excellent & Limited \\
+Phase unwrapping required & No & Yes \\
+\hline
 \end{tabular}
-\end{center}
+\end{table}
 
-\section{總結}
+Overall, the proposed $T/4$ delay with $\pi/4$ phase bias detector provides a favorable trade-off between sensitivity, robustness, and implementation efficiency, making it particularly attractive for practical phase- and frequency-based sensing systems.
 
-$\pi$/4延遲是FM解調器中的最佳選擇，因為它：
-\begin{enumerate}
-    \item 提供最大的檢測靈敏度
-    \item 確保良好的線性度
-    \item 實現簡單且可靠
-    \item 在數學上為最佳工作點
-\end{enumerate}
 
-這就是為什麼商用FM解調器普遍採用$\pi$/4延遲線設計的原因。
+\section{Limitation of the Sensing Range in SIL Radar}
 
+In a software-in-the-loop (SIL) radar, the Doppler-induced phase shift of the received echo is actively canceled by introducing a tunable delay in the received signal path. By adjusting this delay, the SIL radar effectively eliminates the apparent phase variation of the echo, making the radar perceive a stationary target. This process is conceptually equivalent to electronically moving the radar in synchrony with the target motion. As a result, the target displacement can be directly extracted from the applied delay required to cancel the Doppler phase shift.
+
+Although this approach removes the conventional $2\pi$ phase ambiguity, experimental results indicate that the linear sensing range is limited to approximately 14 wavelengths when the total harmonic distortion (THD) is constrained below 2.3\%. This section explains the origin of this limitation from both a system-level and a mathematical perspective.
+
+\subsection{General System-Level Explanation}
+
+In principle, delay-based Doppler cancellation allows the sensing range to exceed the sub-wavelength limitation of conventional phase-based radar systems. However, in practical implementations, the tunable delay is neither continuous nor unbounded. Several non-ideal factors limit the achievable sensing range.
+
+First, the dynamic range of the tunable delay is finite, as it is typically implemented using digital delay lines, buffers, or fractional-delay filters. Once the required compensation delay exceeds this range, further Doppler cancellation becomes infeasible.
+
+Second, and more critically, the delay resolution is finite. The minimum achievable delay step introduces a residual phase error, which accumulates as the displacement amplitude increases. This accumulated phase error manifests as nonlinear distortion in the extracted displacement signal, leading to increased harmonic content.
+
+Finally, the SIL radar operates as a closed-loop system. As the target displacement grows, the corresponding Doppler phase rate increases, placing higher demands on the loop bandwidth and stability. Finite loop bandwidth and processing latency introduce phase lag, further degrading the accuracy of phase cancellation and contributing to nonlinearity.
+
+Consequently, the reported sensing range of 14 wavelengths corresponds to the maximum displacement over which the combined effects of delay quantization, loop dynamics, and noise still allow highly linear operation.
+
+\subsection{Mathematical Analysis of the Limitation}
+
+The Doppler-induced phase of the received echo due to a target displacement $x(t)$ is given by
+\begin{equation}
+\phi(t) = \frac{4\pi}{\lambda} x(t),
+\end{equation}
+where $\lambda$ denotes the carrier wavelength.
+
+In the SIL radar, a tunable delay $d(t)$ is introduced to cancel this phase variation. The phase shift introduced by the delay is
+\begin{equation}
+\phi_d(t) = \omega_c d(t),
+\end{equation}
+where $\omega_c$ is the carrier angular frequency. Doppler cancellation is achieved by enforcing
+\begin{equation}
+\phi(t) - \phi_d(t) \approx 0,
+\end{equation}
+which yields
+\begin{equation}
+d(t) \approx \frac{4\pi}{\omega_c \lambda} x(t).
+\end{equation}
+
+Using $\omega_c = 2\pi c / \lambda$, the delay-to-displacement relationship simplifies to
+\begin{equation}
+\label{eq:delay_displacement}
+\boxed{
+d(t) \approx \frac{2}{c} x(t)
+}
+\end{equation}
+indicating that the tunable delay is directly proportional to the physical displacement.
+
+In practice, the implemented delay contains a quantization error:
+\begin{equation}
+d(t) = \hat{d}(t) + \varepsilon_d(t),
+\end{equation}
+which results in a residual phase error
+\begin{equation}
+\varepsilon_\phi(t)
+= \omega_c \varepsilon_d(t)
+= \frac{4\pi}{\lambda} \varepsilon_d(t).
+\end{equation}
+
+For a harmonic displacement
+\begin{equation}
+x(t) = A \sin(\Omega t),
+\end{equation}
+the residual phase error introduces nonlinear distortion components in the recovered displacement signal. The resulting total harmonic distortion can be approximated as
+\begin{equation}
+\text{THD} \propto
+\left( \frac{4\pi A}{\lambda} \right)^n \varepsilon_d,
+\quad n \geq 2.
+\end{equation}
+
+As the displacement amplitude $A$ increases, the required delay swing grows proportionally, amplifying the effect of delay quantization and loop-induced phase errors. Consequently, the nonlinear distortion increases rapidly with displacement amplitude.
+
+\subsection{Discussion and Interpretation}
+
+The experimentally observed sensing range of 14 wavelengths corresponds to the maximum displacement amplitude for which the accumulated phase error remains sufficiently small to maintain a total harmonic distortion below 2.3\%. This limit is therefore not a fundamental physical constraint, but rather an engineering limit imposed by the finite delay resolution, dynamic range, and loop stability of the SIL radar implementation.
+
+\subsection{Summary}
+
+In summary, while delay-based Doppler cancellation in SIL radar removes the traditional $2\pi$ phase ambiguity and enables wide-range displacement sensing, the achievable linear sensing range is ultimately constrained by practical implementation factors. In the reported system, these factors limit the highly linear sensing range to approximately 14 wavelengths, within which excellent linearity and low harmonic distortion are maintained.
+
+
+\section{Negative Frequency Considerations in Mixing: Mechanical Waves versus Electromagnetic Waves}
+
+\subsection{Concept of Negative Frequency}
+
+Negative frequency is a mathematical concept that arises naturally when signals are represented using complex exponentials. A real-valued sinusoidal signal can be expressed as
+\begin{equation}
+\cos(\omega t)
+=
+\frac{1}{2}
+\left(
+e^{j\omega t}
++
+e^{-j\omega t}
+\right),
+\end{equation}
+where the terms $e^{j\omega t}$ and $e^{-j\omega t}$ correspond to positive and negative frequency components, respectively. Physically, negative frequency does not represent a wave propagating in the opposite spatial direction, but rather a phase rotation in the opposite temporal direction within the complex representation.
+
+\subsection{Mechanical Waves and Real-Valued Signal Representation}
+
+Mechanical waves such as acoustic signals are inherently real-valued. Let $x(t)\in\mathbb{R}$ denote a measured acoustic pressure waveform. Its Fourier transform satisfies the conjugate symmetry property
+\begin{equation}
+X(-f) = X^{*}(f),
+\end{equation}
+which implies that positive and negative frequency components always appear as symmetric pairs.
+
+As a consequence, negative frequencies in mechanical waves cannot be independently manipulated or observed. They are intrinsically linked to their positive-frequency counterparts and therefore do not require explicit consideration in most acoustic signal processing applications.
+
+\subsection{Effect of Mixing on Mechanical Waves}
+
+Mixing is performed through multiplication in the time domain. For an acoustic signal mixed with a real-valued local oscillator,
+\begin{equation}
+y(t) = x(t)\cos(\omega_0 t),
+\end{equation}
+the resulting frequency components are shifted to
+\begin{equation}
+\pm(\omega \pm \omega_0),
+\end{equation}
+where both positive and negative frequencies are translated symmetrically. Since the spectrum remains conjugate symmetric, no image-frequency ambiguity arises that would require separate handling of negative frequencies.
+
+Therefore, in conventional acoustic signal processing, the effect of negative frequencies during mixing is implicitly accounted for and does not necessitate special treatment.
+
+\subsection{Contrast with Complex Baseband Processing in RF Systems}
+
+In radio-frequency (RF) and radar systems, signals are often represented using complex baseband (IQ) notation. Complex mixing is performed using
+\begin{equation}
+y(t) = x(t)e^{-j\omega_0 t},
+\end{equation}
+which shifts the spectrum asymmetrically. In this case, positive- and negative-frequency components are no longer constrained to be symmetric, and negative frequencies correspond to physically meaningful opposite phase rotations.
+
+As a result, careful consideration of negative frequencies is essential in RF and radar systems to avoid image-frequency interference and to preserve Doppler sign information.
+
+\subsection{When Negative Frequencies Matter in Mechanical Wave Processing}
+
+Negative frequency considerations become relevant in mechanical wave processing only when complex analytic representations are intentionally introduced. An analytic signal can be constructed as
+\begin{equation}
+x_a(t) = x(t) + j\mathcal{H}\{x(t)\},
+\end{equation}
+where $\mathcal{H}\{\cdot\}$ denotes the Hilbert transform. This representation suppresses negative-frequency components and enables complex mixing behavior analogous to RF systems.
+
+Such representations are employed in advanced acoustic applications including direction-of-arrival estimation, Doppler-based acoustic sensing, and array signal processing.
+
+\subsection{Summary}
+
+In summary, mechanical waves such as acoustic signals inherently contain both positive and negative frequency components due to their real-valued nature. However, these components are mathematically coupled and do not require explicit treatment in conventional mixing operations. In contrast, RF and radar systems employing complex baseband processing must explicitly account for negative frequencies, as they carry physically meaningful information related to phase rotation and Doppler direction.
 
 \end{document}
