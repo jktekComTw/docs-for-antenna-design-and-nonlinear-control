@@ -1,0 +1,189 @@
+\documentclass{article}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+\usepackage[utf8]{inputenc}
+\usepackage[UTF8]{ctex}
+% \setCJKmainfont{}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xeCJK}
+\usepackage{CJKutf8}
+\setCJKmainfont{Noto Serif CJK TC} 
+\setCJKsansfont{Microsoft JhengHei}  
+\setCJKmonofont{Noto Sans Mono CJK TC}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!10}
+}
+
+\title{Docker Networking}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Default Network Types}
+
+\subsection{Bridge (Default)}
+
+Containers get their own private IP on an internal network. Containers can reach the internet through NAT. Containers on the same bridge can communicate by IP. Use \texttt{-p 8080:80} to expose ports to the host.
+
+\subsection{Host}
+
+Container shares the host's network stack directly. No network isolation, no port mapping needed. Better performance, less security.
+
+\begin{lstlisting}[language=bash]
+docker run --network host ...
+\end{lstlisting}
+
+\subsection{None}
+
+No networking at all. Complete isolation.
+
+\begin{lstlisting}[language=bash]
+docker run --network none ...
+\end{lstlisting}
+
+\section{Basic Commands}
+
+\begin{lstlisting}[language=bash]
+# List networks
+docker network ls
+
+# Inspect a network
+docker network inspect bridge
+
+# Create a custom network
+docker network create my-network
+
+# Run container on specific network
+docker run --network my-network nginx
+
+# Connect running container to network
+docker network connect my-network container_name
+
+# Disconnect
+docker network disconnect my-network container_name
+\end{lstlisting}
+
+\section{Custom Bridge Networks}
+
+Custom bridges have advantages over the default bridge:
+
+\begin{lstlisting}[language=bash]
+docker network create app-network
+docker run -d --name db --network app-network postgres
+docker run -d --name web --network app-network nginx
+\end{lstlisting}
+
+Benefits include automatic DNS resolution by container name (so \texttt{web} can ping \texttt{db} by name), better isolation between projects, and the ability to connect or disconnect containers without restarting.
+
+\section{Docker Compose Networking}
+
+Compose automatically creates a network for your services:
+
+\begin{lstlisting}
+services:
+  web:
+    image: nginx
+    ports:
+      - "8080:80"
+  db:
+    image: postgres
+\end{lstlisting}
+
+Services can reach each other by name (\texttt{web} can connect to \texttt{db:5432}).
+
+\section{DNS in Docker}
+
+Docker runs its own DNS server (127.0.0.11) inside containers. You can customize:
+
+\begin{lstlisting}[language=bash]
+docker run --dns 8.8.8.8 nginx
+\end{lstlisting}
+
+Or in \texttt{/etc/docker/daemon.json}:
+
+\begin{lstlisting}
+{
+  "dns": ["8.8.8.8", "1.1.1.1"]
+}
+\end{lstlisting}
+
+Then restart Docker: \texttt{sudo systemctl restart docker}
+
+\section{Host Network Mode in Detail}
+
+\subsection{How It Differs From Bridge}
+
+In bridge mode (default), the host has its own IP (e.g., 192.168.1.100), Docker creates an internal bridge network (172.17.0.1), and containers get IPs on that internal network (172.17.0.2). Traffic is routed through NAT and port mapping.
+
+In host mode, the container uses the host's IP (192.168.1.100) directly. Applications in the container listen on the host's network interfaces without any translation layer.
+
+\subsection{Practical Example}
+
+\begin{lstlisting}[language=bash]
+# Bridge mode - need port mapping
+docker run -d -p 8080:80 nginx
+# Access via localhost:8080
+
+# Host mode - no port mapping
+docker run -d --network host nginx
+# Access via localhost:80 directly
+\end{lstlisting}
+
+\subsection{When to Use Host Mode}
+
+Host mode is good for applications needing to handle lots of connections, services that need to bind to many ports dynamically, network monitoring tools that need to see all host traffic, when you need the absolute best network performance, and applications that discover or advertise their own IP.
+
+\subsection{The Downsides}
+
+Port conflicts can occur if the host already has something bound to a port the container wants to use. There is no isolation, meaning the container can see all host network interfaces and bind to any port. Security is reduced since the container has more access to the host network.
+
+\subsection{Performance Difference}
+
+Host mode skips the network address translation (NAT) layer, which means lower latency, higher throughput for network-heavy workloads, and less CPU overhead.
+
+\subsection{Limitation}
+
+Host networking only works on Linux. On Docker Desktop for Mac or Windows, containers run inside a VM, so \texttt{--network host} gives you the VM's network, not your actual host.
+
+\section{Getting a Real LAN IP for Containers}
+
+\subsection{The Problem}
+
+With bridge mode, containers get an IP from Docker's internal DHCP (e.g., 172.17.0.x), not from your LAN's DHCP. This IP is only reachable from the host.
+
+With host mode, the container shares the host's IP and does not get its own.
+
+\subsection{Solution: Macvlan}
+
+To have a container appear as a separate device on your LAN with its own IP:
+
+\begin{lstlisting}[language=bash]
+# Create a macvlan network
+docker network create -d macvlan \
+  --subnet=192.168.1.0/24 \
+  --gateway=192.168.1.1 \
+  -o parent=eth0 \
+  my-lan
+
+# Run container - it gets its own LAN IP
+docker run --rm --network my-lan alpine ip addr
+\end{lstlisting}
+
+Now the container appears as a separate device on your LAN, can get an IP from your router's DHCP or be assigned one statically, and is reachable directly by other devices on the network.
+
+\end{document}

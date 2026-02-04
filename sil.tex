@@ -5,23 +5,17 @@
 \usepackage[UTF8]{ctex}
 % \setCJKmainfont{}
 \usepackage{amsmath}
+\usepackage{cancel}
 \usepackage{amssymb}
 \usepackage{array}
 \usepackage{booktabs}
 \usepackage{enumitem}
 \usepackage{xeCJK}
 \usepackage{CJKutf8}
-\setCJKmainfont{Noto Serif CJK TC}    % 思源宋體繁體版（推薦）
-\setCJKsansfont{Microsoft JhengHei}   % 微軟正黑體
+\setCJKmainfont{Noto Serif CJK TC} 
+\setCJKsansfont{Microsoft JhengHei}  
 \setCJKmonofont{Noto Sans Mono CJK TC}
-% \setCJKmainfont{WenQuanYi Zen Hei}
-% % 或者使用其他可用字體：
-% % \setCJKmainfont{AR PL Mingti2L Big5}
-% % \setCJKmainfont{Noto Sans CJK TC}
 
-% % 設置全形符號支持
-% \setCJKsansfont{WenQuanYi Zen Hei}
-% \setCJKmonofont{WenQuanYi Zen Hei}
 
 \title{Self-Injection-Locked (SIL) Oscillator Analysis}
 \author{carlos ma}
@@ -1022,397 +1016,805 @@ where
 \Delta\phi(t)=\phi(t)-\phi(t-\tau).
 \end{equation}
 
-\section{Why Choose $T/4$ and a $\pi/4$ Operating Point}
+\section{FM Discriminator Based on Quarter-Period Delay and Multiplication}
 
-\subsection{Optimal Sensitivity}
+\subsection{FM Signal Model}
 
-The $T/4$ delay introduces a $\pi/2$ carrier phase shift, ensuring quadrature between the two signal paths. By applying an additional $\pi/4$ phase bias, the detector operates at a point of high linearity and sensitivity, providing an efficient phase-to-voltage conversion.
-
-\subsection{Small-Signal Approximation}
-
-For small phase variations $\Delta\phi$, the output can be approximated by
+Consider a standard FM signal
 \begin{equation}
-\cos\!\left(\frac{\pi}{4}-\Delta\phi\right)
-\approx
-\cos\!\left(\frac{\pi}{4}\right)
-+\sin\!\left(\frac{\pi}{4}\right)\Delta\phi
+u(t) = A \cos\!\big(\omega_c t + \phi(t)\big),
+\end{equation}
+where $\omega_c$ is the carrier angular frequency and $\phi(t)$ is the information-bearing phase term.
+The instantaneous angular frequency is
+\begin{equation}
+\omega_i(t) = \frac{d}{dt}\big(\omega_c t + \phi(t)\big)
+= \omega_c + \dot{\phi}(t).
+\end{equation}
+FM demodulation aims to recover $\dot{\phi}(t)$.
+
+\subsection{Quarter-Period Delay}
+
+Let the carrier period be
+\begin{equation}
+T = \frac{2\pi}{\omega_c},
+\end{equation}
+so that a quarter-period delay is
+\begin{equation}
+\frac{T}{4} = \frac{\pi}{2\omega_c}.
+\end{equation}
+The delayed signal is then
+\begin{equation}
+u\!\left(t-\frac{T}{4}\right)
+= A \cos\!\left(\omega_c t - \frac{\pi}{2}
++ \phi\!\left(t-\frac{T}{4}\right)\right).
+\end{equation}
+
+Assuming narrowband FM (slowly varying phase),
+\begin{equation}
+\phi\!\left(t-\frac{T}{4}\right)
+\approx \phi(t) - \dot{\phi}(t)\frac{T}{4}.
+\end{equation}
+
+\subsection{Multiplier Output}
+
+The product of the original and delayed signals is
+\begin{equation}
+u(t)\,u\!\left(t-\frac{T}{4}\right)
+= A^2 \cos\big(\omega_c t + \phi(t)\big)
+\cos\!\left(\omega_c t - \frac{\pi}{2}
++ \phi(t) - \dot{\phi}(t)\frac{T}{4}\right).
+\end{equation}
+
+Using the trigonometric identity
+\[
+\cos a \cos b = \frac{1}{2}\big[\cos(a-b)+\cos(a+b)\big],
+\]
+the product consists of:
+\begin{itemize}
+\item a high-frequency term near $2\omega_c$ (removed by low-pass filtering),
+\item a low-frequency term given by
+\end{itemize}
+\begin{equation}
+\frac{A^2}{2}
+\cos\!\left(
+\frac{\pi}{2} + \dot{\phi}(t)\frac{T}{4}
+\right)
+= -\frac{A^2}{2}
+\sin\!\left(\dot{\phi}(t)\frac{T}{4}\right).
+\end{equation}
+
+\subsection{Frequency Discrimination}
+
+For small modulation index (narrowband FM),
+\begin{equation}
+\sin x \approx x,
+\end{equation}
+hence
+\begin{equation}
+u(t)\,u\!\left(t-\frac{T}{4}\right)
+\;\propto\;
+-\dot{\phi}(t).
+\end{equation}
+
+Since $\dot{\phi}(t) = \omega_i(t) - \omega_c$, the low-pass filtered output is proportional to the instantaneous frequency deviation:
+\begin{equation}
+\boxed{
+\text{LPF}\left\{u(t)\,u\!\left(t-\frac{T}{4}\right)\right\}
+\;\propto\;
+\omega_i(t) - \omega_c
+}.
+\end{equation}
+
+\subsection{Interpretation}
+
+This structure acts as an FM discriminator by:
+\begin{enumerate}
+\item introducing a $90^\circ$ phase shift via a quarter-period delay,
+\item converting phase differences into amplitude variations through multiplication,
+\item extracting the baseband signal by low-pass filtering.
+\end{enumerate}
+
+Thus, the operation $u(t)\times u(t-T/4)$ implements a classical multiplier-based FM discriminator.
+\section{First-Order Approximation of Delayed Phase}
+
+Consider a differentiable phase function $\phi(t)$. Using the Taylor series expansion around time $t$, we have
+\begin{equation}
+\phi(t-\Delta)
+= \phi(t) - \dot{\phi}(t)\Delta + \frac{1}{2}\ddot{\phi}(t)\Delta^2 + \cdots
+\end{equation}
+where $\dot{\phi}(t) = \frac{d\phi(t)}{dt}$ and $\Delta$ is a small time delay.
+
+By letting $\Delta = 4T$, the expression becomes
+\begin{equation}
+\phi(t-4T)
+= \phi(t) - 4T\dot{\phi}(t) + \frac{1}{2}\ddot{\phi}(t)(4T)^2 + \cdots
+\end{equation}
+
+When $T$ is sufficiently small and $\phi(t)$ varies slowly with time, higher-order terms can be neglected. Therefore, a first-order approximation is obtained as
+\begin{equation}
+\phi(t-4T) \approx \phi(t) - 4T\dot{\phi}(t).
+\end{equation}
+
+This approximation is widely used in communication and radar systems, such as phase noise modeling, carrier frequency offset (CFO) analysis, and Doppler effect linearization.
+\section{Connection to the I/Q Demodulation Architecture}
+
+\subsection{Quarter-Period Delay Interpretation}
+
+In the RF domain, a quarter-period delay corresponds to a $90^\circ$ phase shift:
+\[
+\cos\!\left(\omega_c t - \frac{\pi}{2}\right) = \sin(\omega_c t).
+\]
+Thus, the classical FM discriminator based on the operation
+\[
+u(t)\times u\!\left(t-\frac{T}{4}\right)
+\]
+implements frequency discrimination by exploiting a $90^\circ$ phase difference.
+
+\subsection{I/Q Demodulation as an Implicit $T/4$ Delay}
+
+In an I/Q demodulation architecture, the received signal $u(t)$ is mixed with two orthogonal local oscillators:
+\[
+\cos(\omega_c t) \quad \text{and} \quad \sin(\omega_c t),
+\]
+followed by low-pass filtering. This process inherently introduces the same $90^\circ$ phase separation as a $T/4$ delay.
+
+\subsection{Baseband I/Q Signals for an FM Wave}
+
+For an FM signal
+\[
+u(t) = A\cos\!\big(\omega_c t + \phi(t)\big),
+\]
+the resulting baseband components are
+\[
+I(t) = A\cos\!\big(\phi(t)\big), \qquad
+Q(t) = A\sin\!\big(\phi(t)\big).
+\]
+Together, they form the complex baseband signal
+\[
+z(t) = I(t) + jQ(t) = A e^{j\phi(t)}.
+\]
+
+\subsection{FM Discrimination in the I/Q Domain}
+
+The instantaneous phase is given by $\phi(t) = \arg\{z(t)\}$, and the instantaneous frequency deviation is proportional to its time derivative. In terms of $I(t)$ and $Q(t)$, the discriminator output can be written as
+\[
+\omega_i(t) - \omega_c
+\;\propto\;
+I(t)\,\dot{Q}(t) - Q(t)\,\dot{I}(t).
+\]
+
+This expression measures the rotational speed of the I/Q vector in the complex plane, which directly corresponds to the instantaneous frequency deviation of the FM signal.
+
+\subsection{Equivalence to the $T/4$ Delay Multiplier}
+
+The RF-domain operation $u(t)\times u(t-T/4)$ and the I/Q-domain discriminator are mathematically equivalent:
+\begin{itemize}
+\item the $T/4$ delay at RF corresponds to the quadrature local oscillator in I/Q demodulation,
+\item multiplication in the RF domain corresponds to the cross-product $I(t)\dot{Q}(t)-Q(t)\dot{I}(t)$,
+\item low-pass filtering at RF is naturally achieved by baseband processing in the I/Q domain.
+\end{itemize}
+
+Therefore, the I/Q-based FM discriminator can be viewed as a clean, baseband realization of the classical quarter-period delay FM discriminator.
+\section{Block Diagram Figures for FM Discriminator Implementations}
+
+This section provides LaTeX figure examples (using \texttt{tikz}) to illustrate: (i) the classical RF $T/4$-delay multiplier discriminator, (ii) the I/Q demodulation-based discriminator concept, and (iii) the discrete-time (FPGA) conjugate-product discriminator front-end.
+
+\subsection{Required Package}
+
+Add the following to the LaTeX preamble:
+\begin{verbatim}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\end{verbatim}
+
+% --------------------------------------------------------
+\subsection{RF $T/4$-Delay Multiplier FM Discriminator}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  block/.style={draw, rounded corners, minimum height=9mm, minimum width=18mm, align=center},
+  sum/.style={draw, circle, inner sep=0pt, minimum size=6mm},
+  line/.style={-Latex, thick},
+  node distance=10mm
+]
+\node (in) {$u(t)$};
+
+\node[block, right=18mm of in] (split) {Split};
+\node[block, above right=12mm and 14mm of split] (delay) {$T/4$\\Delay};
+\node[block, below right=12mm and 14mm of split] (direct) {Direct};
+
+\node[block, right=18mm of split] (mult) {$\times$};
+\node[block, right=16mm of mult] (lpf) {LPF};
+\node[right=16mm of lpf] (out) {FM out};
+
+\draw[line] (in) -- (split);
+\draw[line] (split.east) -- ++(8mm,0) |- (delay.west);
+\draw[line] (split.east) -- ++(8mm,0) |- (direct.west);
+
+\draw[line] (delay.east) -| (mult.north);
+\draw[line] (direct.east) -| (mult.south);
+
+\draw[line] (mult) -- (lpf) -- (out);
+
+\node[above=2mm of delay] {\small $u(t-T/4)$};
+\node[below=2mm of direct] {\small $u(t)$};
+\end{tikzpicture}
+\caption{Classical RF FM discriminator using quarter-period delay and multiplication. After low-pass filtering, the output is proportional to the instantaneous frequency deviation for narrowband FM.}
+\label{fig:rf_t4_discriminator}
+\end{figure}
+
+% --------------------------------------------------------
+\subsection{I/Q Demodulation View (Implicit $90^\circ$ Phase Separation)}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  block/.style={draw, rounded corners, minimum height=9mm, minimum width=20mm, align=center},
+  line/.style={-Latex, thick},
+  node distance=10mm
+]
+\node (in) {$u(t)$};
+
+\node[block, right=18mm of in] (split) {Split};
+
+\node[block, above right=12mm and 14mm of split] (mixI) {$\times \cos(\omega_c t)$};
+\node[block, below right=12mm and 14mm of split] (mixQ) {$\times \sin(\omega_c t)$};
+
+\node[block, right=16mm of mixI] (lpfI) {LPF};
+\node[block, right=16mm of mixQ] (lpfQ) {LPF};
+
+\node[right=14mm of lpfI] (Iout) {$I(t)$};
+\node[right=14mm of lpfQ] (Qout) {$Q(t)$};
+
+\draw[line] (in) -- (split);
+
+\draw[line] (split.east) -- ++(8mm,0) |- (mixI.west);
+\draw[line] (split.east) -- ++(8mm,0) |- (mixQ.west);
+
+\draw[line] (mixI) -- (lpfI) -- (Iout);
+\draw[line] (mixQ) -- (lpfQ) -- (Qout);
+
+\node[above=2mm of mixI] {\small In-phase branch};
+\node[below=2mm of mixQ] {\small Quadrature branch ($90^\circ$)};
+\end{tikzpicture}
+\caption{I/Q demodulation produces orthogonal baseband components. The quadrature LO provides an implicit $90^\circ$ phase separation equivalent to a $T/4$ delay at RF.}
+\label{fig:iq_demod}
+\end{figure}
+
+% --------------------------------------------------------
+\subsection{Discrete-Time (FPGA) Conjugate-Product Discriminator Front-End}
+
+\begin{figure}[t]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tikzpicture}[
+  block/.style={draw, rounded corners, minimum height=9mm, minimum width=23mm, align=center},
+  line/.style={-Latex, thick},
+  node distance=10mm
+]
+\node (in) {$I[n],\,Q[n]$};
+
+\node[block, right=18mm of in] (delay) {$z^{-1}$\\(1-sample)};
+\node[block, right=18mm of delay] (conj) {Conjugate\\$I[n\!-\!1],-Q[n\!-\!1]$};
+
+\node[block, above right=10mm and 14mm of conj] (reblk) {$\Re\{p[n]\}$\\$I[n]I[n-1]+Q[n]Q[n-1]$};
+\node[block, below right=10mm and 14mm of conj] (imblk) {$\Im\{p[n]\}$\\$Q[n]I[n-1]-I[n]Q[n-1]$};
+
+\node[block, right=18mm of conj] (cmul) {Complex\\Multiply};
+
+\node[block, right=18mm of cmul] (atan2) {$\operatorname{atan2}$\\(CORDIC)};
+\node[block, right=16mm of atan2] (scale) {$\times \dfrac{F_s}{2\pi}$};
+
+\node[right=16mm of scale] (out) {$\Delta f[n]$ (Hz)};
+
+\draw[line] (in) -- (delay);
+\draw[line] (delay) -- (conj);
+\draw[line] (in) |- (cmul.west);
+\draw[line] (conj) |- (cmul.west);
+
+\draw[line] (cmul) -- (atan2) -- (scale) -- (out);
+
+% optional annotation: show that cmul outputs Re/Im
+\draw[line] (cmul.north) |- (reblk.west);
+\draw[line] (cmul.south) |- (imblk.west);
+
+\node[above=2mm of cmul] {\small $p[n]=z[n]z^*[n-1]$};
+\end{tikzpicture}}
+\caption{Discrete-time (FPGA) FM discriminator using the one-sample conjugate product. The complex multiply produces $\Re\{p[n]\}$ and $\Im\{p[n]\}$, followed by $\operatorname{atan2}$ (typically CORDIC) to obtain $\Delta\phi[n]$, then scaling by $F_s/(2\pi)$ to output frequency offset $\Delta f[n]$ in Hz.}
+\label{fig:fpga_conjprod_discriminator}
+\end{figure}
+\section{Derivation of the I/Q-Based FM Discriminator}
+
+\subsection{Complex Baseband Representation}
+
+Let the complex baseband signal be defined as
+\begin{equation}
+z(t) = I(t) + jQ(t).
+\end{equation}
+Equivalently, it can be expressed in polar form as
+\begin{equation}
+z(t) = A(t)e^{j\phi(t)},
+\end{equation}
+where $A(t)$ is the signal amplitude and $\phi(t)$ is the instantaneous phase. By definition,
+\begin{equation}
+\boxed{
+\phi(t) = \arg\{z(t)\}.
+}
+\end{equation}
+
+\subsection{Instantaneous Frequency}
+
+The instantaneous angular frequency of the passband signal is given by
+\begin{equation}
+\omega_i(t) = \frac{d}{dt}\big(\omega_c t + \phi(t)\big)
+= \omega_c + \dot{\phi}(t),
+\end{equation}
+so that the frequency deviation relative to the carrier is
+\begin{equation}
+\omega_i(t) - \omega_c = \dot{\phi}(t).
+\end{equation}
+
+\subsection{Phase in Terms of I/Q Components}
+
+From the complex baseband representation,
+\begin{equation}
+\phi(t) = \tan^{-1}\!\left(\frac{Q(t)}{I(t)}\right).
+\end{equation}
+
+\subsection{Time Derivative of the Phase}
+
+Taking the time derivative and applying the chain rule yields
+\begin{align}
+\dot{\phi}(t)
+&= \frac{1}{1+\left(\frac{Q(t)}{I(t)}\right)^2}
+\cdot
+\frac{I(t)\dot{Q}(t) - Q(t)\dot{I}(t)}{I^2(t)} \\
+&= \frac{I(t)\dot{Q}(t) - Q(t)\dot{I}(t)}{I^2(t) + Q^2(t)}.
+\end{align}
+
+\subsection{I/Q-Based FM Discriminator}
+
+Combining the above results, the instantaneous frequency deviation can be written as
+\begin{equation}
+\boxed{
+\omega_i(t) - \omega_c
 =
-\frac{\sqrt{2}}{2}
-+\frac{\sqrt{2}}{2}\,\Delta\phi.
+\frac{I(t)\dot{Q}(t) - Q(t)\dot{I}(t)}{I^2(t) + Q^2(t)}
+}.
 \end{equation}
 
-Thus, around the $\pi/4$ operating point, the detector output varies linearly with the phase difference.
+\subsection{Constant-Amplitude Approximation}
 
-\subsection{Frequency Detection}
-
-The instantaneous frequency deviation can be approximated as
+In many practical FM receivers, automatic gain control (AGC) ensures that the signal amplitude is approximately constant, i.e.,
+\[
+I^2(t) + Q^2(t) \approx A^2 = \text{constant}.
+\]
+Under this assumption, the denominator can be absorbed into a proportionality constant, yielding the commonly used form
 \begin{equation}
-\Delta\omega(t)
-=\frac{d\phi(t)}{dt}
-\approx
-\frac{\phi(t)-\phi(t-\tau)}{\tau},
+\boxed{
+\omega_i(t) - \omega_c
+\;\propto\;
+I(t)\dot{Q}(t) - Q(t)\dot{I}(t).
+}
 \end{equation}
-with
+
+\subsection{Geometric Interpretation}
+
+The term $I(t)\dot{Q}(t) - Q(t)\dot{I}(t)$ corresponds to the $z$-component of the two-dimensional cross product between the vector $(I(t), Q(t))$ and its time derivative $(\dot{I}(t), \dot{Q}(t))$. This quantity represents the angular velocity of the rotating I/Q vector in the complex plane and therefore directly encodes the instantaneous frequency deviation.
+
+\begin{itemize}
+  \item The resonator is bandpass, centered near \(\omega_n\).
+\end{itemize}
+\section{Square-Wave Injection Signal and Fundamental Component}
+
+Consider a standard symmetric square-wave injection signal defined as
 \begin{equation}
-\tau=\frac{T}{4}=\frac{\pi}{2\omega_c}.
+u_{\text{inj}}(t) = A_{\text{inj}} \cdot \operatorname{sgn}(\sin \omega t).
 \end{equation}
-\section{Advantages of the $T/4$ Delay with $\pi/4$ Phase Bias Detector}
 
-\subsection{Maximum Phase Sensitivity}
-
-The use of a $T/4$ delay introduces a $\pi/2$ carrier phase shift, ensuring quadrature between the two signal paths. When combined with a $\pi/4$ phase bias, the detector operates at a point where the slope of the output with respect to the phase difference is maximized.
-
-Specifically, the detector output is given by
+The Fourier series expansion of this square wave is given by
 \begin{equation}
-\text{Output} \propto \cos\!\left(\frac{\pi}{4}-\Delta\phi\right),
+u_{\text{inj}}(t)
+= \frac{4 A_{\text{inj}}}{\pi}
+\left[
+\sin(\omega t)
++ \frac{1}{3}\sin(3\omega t)
++ \frac{1}{5}\sin(5\omega t)
++ \cdots
+\right].
 \end{equation}
-whose derivative with respect to $\Delta\phi$ is
+
+\subsection{Fundamental Component}
+
+Retaining only the fundamental (first-harmonic) component, the injection signal can be approximated as
 \begin{equation}
-\frac{d}{d(\Delta\phi)}
-\cos\!\left(\frac{\pi}{4}-\Delta\phi\right)
+u_{\text{inj}}^{(1)}(t)
+= \frac{4 A_{\text{inj}}}{\pi} \sin(\omega t).
+\end{equation}
+
+Therefore, the amplitude of the fundamental component is
+\begin{equation}
+B = \frac{4 A_{\text{inj}}}{\pi}.
+\end{equation}
+\section{Frequency Shift Model Based on Adler's Equation}
+
+According to Adler’s equation \cite{Adler}, the instantaneous oscillation frequency
+$\omega(t)$ of an injection-locked oscillator is related to the phase difference
+$\theta(t)$ between the oscillation signal and the injected signal.
+
+\subsection{Adler's Phase Equation}
+
+For a weakly injected, high-$Q$ resonator, the phase dynamics are governed by
+\begin{equation}
+\dot{\theta}(t)
 =
-\sin\!\left(\frac{\pi}{4}-\Delta\phi\right).
+\omega(t) - \omega_n
+-
+\frac{\omega_n}{2Q}\frac{B}{A}\sin\theta(t),
+\label{eq:adler}
 \end{equation}
+where $\omega_n$ is the natural resonance frequency, $Q$ is the quality factor
+of the resonator, $B$ is the amplitude of the injected sinusoidal signal
+$u_{\mathrm{inj}}$, and $A$ is the amplitude of the oscillation signal $u$.
 
-At the operating point $\Delta\phi=0$, the slope becomes
+\subsection{Quasi-Static Approximation}
+
+For a high-$Q$ resonator, the phase $\theta(t)$ evolves slowly compared to the
+oscillation period. Under this quasi-static assumption, $\dot{\theta}(t)$ can be
+neglected, yielding an approximate algebraic relationship between frequency and
+phase:
 \begin{equation}
-\left.\frac{d(\text{Output})}{d(\Delta\phi)}\right|_{\Delta\phi=0}
-=
-\sin\!\left(\frac{\pi}{4}\right)
-=
-\frac{\sqrt{2}}{2},
-\end{equation}
-which represents a high and stable phase-to-voltage conversion gain.
-
----
-
-\subsection{Improved Linearity for Small Phase Variations}
-
-For small phase differences, the output can be linearized as
-\begin{equation}
-\cos\!\left(\frac{\pi}{4}-\Delta\phi\right)
+\omega(t) - \omega_n
 \approx
-\frac{\sqrt{2}}{2}
-+
-\frac{\sqrt{2}}{2}\Delta\phi.
+-\frac{\omega_n}{2Q}\frac{B}{A}\sin\theta(t).
+\label{eq:freq_shift}
 \end{equation}
 
-This approximation shows that the detector output consists of a constant bias term and a linear term proportional to the phase difference. Compared to detectors operating at $\Delta\phi=0$ or $\Delta\phi=\pi/2$, the $\pi/4$ operating point provides a wider linear region, making it well suited for small-signal phase and frequency detection.
+\subsection{Physical Interpretation}
 
----
+Equation~\eqref{eq:freq_shift} describes the frequency pulling effect induced by
+the injected signal. The frequency deviation from the natural resonance frequency
+$\omega_n$ is proportional to the sine of the phase difference $\theta(t)$.
+The proportionality constant depends on the resonator stiffness through $Q$ and
+on the relative injection strength through the amplitude ratio $B/A$.
 
-\subsection{Reduced Sensitivity to Amplitude Fluctuations}
+This reduced phase-domain model corresponds to the frequency-shift block used in
+the system-level block diagram.
+\section{Demodulating Filter Transfer Function}
 
-Because the two signal paths are orthogonal due to the $T/4$ delay, the low-pass filtered output primarily depends on the phase difference rather than the absolute signal amplitude. Slow amplitude variations affect both paths similarly and are largely canceled by the multiplication and filtering process.
+The demodulating filter $F(s)$ is formed by cascading two second-order lowpass Butterworth filters with cutoff frequencies of 13 kHz and 19 kHz, which together give a cutoff frequency of 11.9 kHz.
 
-As a result, the detector exhibits improved robustness against:
+\begin{equation}
+F(s) = \frac{9.51 \times 10^{19}}{s^4 + 2.84 \times 10^5 s^3 + 4.04 \times 10^{10} s^2 + 2.77 \times 10^{15} s + 9.51 \times 10^{19}}
+\end{equation}
+
+\subsection{Cutoff Frequency}
+
+The cutoff frequency is:
+\begin{equation}
+\omega_c = 2\pi \times 11900 \text{ rad/s}
+\end{equation}
+
+\section{Plant Model}
+
+The plant model is given by:
+\begin{equation}
+P(s) = -k e^{-\frac{T}{8}s} F(s)
+\end{equation}
+
+where the gain $k$ equals the resonator bandwidth (in Hz):
+\begin{equation}
+k = \frac{f_n}{Q} = \frac{1}{QT}
+\end{equation}
+
+with $f_n = \omega_n / (2\pi)$.
+\section{Plant Gain Function}
+
+The plant gain function is given by:
+
+\begin{equation}
+g(\theta, A_{inj}) = \frac{2A_{inj}\cos(\theta)[1 + A_{inj}\cos(\theta)]\omega_n}{\pi Q}
+\end{equation}
+
+\section{Derivation of Simplified Plant Model}
+
+We derive the simplified plant model by substituting $\theta = \pi$ and $A_{inj} = 0.5$.
+
+\subsection{Step 1: Substitute $\theta = \pi$}
+
+Since $\cos(\pi) = -1$:
+
+\begin{equation}
+g(\pi, A_{inj}) = \frac{2A_{inj}(-1)[1 + A_{inj}(-1)]\omega_n}{\pi Q}
+\end{equation}
+
+\begin{equation}
+g(\pi, A_{inj}) = \frac{-2A_{inj}[1 - A_{inj}]\omega_n}{\pi Q}
+\end{equation}
+
+\subsection{Step 2: Substitute $A_{inj} = 0.5$}
+
+\begin{equation}
+g(\pi, 0.5) = \frac{-2(0.5)[1 - 0.5]\omega_n}{\pi Q}
+\end{equation}
+
+\begin{equation}
+g(\pi, 0.5) = \frac{-1 \times 0.5 \times \omega_n}{\pi Q}
+\end{equation}
+
+\begin{equation}
+g(\pi, 0.5) = \frac{-0.5\omega_n}{\pi Q}
+\end{equation}
+
+\subsection{Step 3: Simplify}
+
+\begin{equation}
+g(\pi, 0.5) = -\frac{\omega_n}{2\pi Q} = -\frac{f_n}{Q}
+\end{equation}
+
+Since $f_n = \frac{\omega_n}{2\pi}$, we get:
+
+\begin{equation}
+g(\pi, 0.5) = -\frac{f_n}{Q} = -\frac{1}{QT} = -k
+\end{equation}
+
+\section{Final Plant Model}
+
+Therefore, the plant model becomes:
+
+\begin{equation}
+P(s) = g(\theta, A_{inj}) \cdot e^{-\frac{T}{8}s} F(s) = -k e^{-\frac{T}{8}s} F(s)
+\end{equation}
+
+where the gain $k$ equals the resonator bandwidth (in Hz):
+
+\begin{equation}
+k = \frac{f_n}{Q} = \frac{1}{QT}
+\end{equation}
+
+with $f_n = \frac{\omega_n}{2\pi}$ and $T = \frac{1}{f_n}$.
+\section{Original Plant Model}
+
+The plant model derived from the SIL radar is:
+
+\begin{equation}
+P(s) = -k e^{-\frac{T}{8}s} F(s)
+\end{equation}
+
+where $F(s)$ is a 4th-order lowpass Butterworth filter:
+
+\begin{equation}
+F(s) = \frac{9.51 \times 10^{19}}{s^4 + 2.84 \times 10^5 s^3 + 4.04 \times 10^{10} s^2 + 2.77 \times 10^{15} s + 9.51 \times 10^{19}}
+\end{equation}
+
+This high-order model with time delay is complex for controller design.
+
+\section{First-Order Approximation}
+
+The plant is approximated by a simpler first-order model:
+
+\begin{equation}
+\hat{P}(s) = \frac{-k\omega_c}{s + \omega_c}
+\end{equation}
+
+where:
 \begin{itemize}
-\item amplitude modulation,
-\item fading-induced gain variations,
-\item front-end gain mismatch.
+    \item $k = \frac{f_n}{Q} = \frac{1}{QT}$ is the DC gain
+    \item $\omega_c = 2\pi \times 11900$ rad/s is the cutoff frequency
 \end{itemize}
 
-This property is particularly beneficial in practical sensing and communication systems where amplitude stability cannot be guaranteed.
+\section{Why This Approximation is Valid}
 
----
+\subsection{DC Gain Matching}
 
-\subsection{Enhanced Noise Performance}
-
-The multiplication of the signal with a quadrature-delayed replica effectively performs coherent detection, which improves the signal-to-noise ratio (SNR) of the phase estimate. Furthermore, the low-pass filter suppresses high-frequency noise components around $2\omega_c$, leaving only the slowly varying phase-related term.
-
-Operating at the $\pi/4$ bias point avoids the flat regions of the cosine response, where noise-induced phase fluctuations would produce minimal output variation. This results in improved phase resolution under noisy conditions.
-
----
-
-\subsection{Suitability for Frequency Detection}
-
-The phase difference obtained from the $T/4$ delay approximates the phase derivative:
+For the original model at $s = 0$:
 \begin{equation}
-\Delta\phi(t) \approx \tau \frac{d\phi(t)}{dt},
-\end{equation}
-which leads directly to an estimate of the instantaneous frequency deviation:
-\begin{equation}
-\Delta\omega(t)
-\approx
-\frac{\phi(t)-\phi(t-\tau)}{\tau}.
+P(0) = -k \cdot e^{0} \cdot F(0) = -k \cdot 1 \cdot 1 = -k
 \end{equation}
 
-Thus, the proposed structure naturally supports frequency discrimination without requiring explicit differentiation, making it attractive for frequency tracking and Doppler sensing applications.
+For the approximation at $s = 0$:
+\begin{equation}
+\hat{P}(0) = \frac{-k\omega_c}{\omega_c} = -k
+\end{equation}
 
----
+Both have the same DC gain.
 
-\subsection{Implementation Efficiency}
+\subsection{Cutoff Frequency Matching}
 
-The proposed detector relies only on:
+Both models have the same cutoff frequency $\omega_c$, meaning they attenuate signals similarly at higher frequencies.
+
+\subsection{Low-Frequency Assumption}
+
+At low frequencies:
 \begin{itemize}
-\item a fixed delay of $T/4$,
-\item a constant phase bias,
-\item a single multiplier,
-\item and a low-pass filter.
+    \item Time delay: $e^{-\frac{T}{8}s} \approx 1$
+    \item Higher-order terms in $F(s)$ are negligible
 \end{itemize}
 
-No trigonometric operations or arctangent computations are required, which significantly reduces implementation complexity. This makes the structure well suited for real-time realization in digital signal processors (DSPs), field-programmable gate arrays (FPGAs), and software-in-the-loop (SIL) simulation frameworks.
+Therefore, the first-order model accurately represents the plant behavior in the frequency range of interest (where target motion occurs).
 
----
+\section{Benefit for Controller Design}
 
-\subsection{Summary of Advantages}
+With the simplified model $\hat{P}(s)$, the PI controller can be designed to cancel the plant dynamics:
 
-In summary, the $T/4$ delay with a $\pi/4$ phase bias offers:
+\begin{equation}
+C(s) = k_I \cdot \frac{1}{s} + k_p = \frac{k_p s + k_I}{s}
+\end{equation}
+
+The open-loop transfer function becomes:
+
+\begin{equation}
+C(s)\hat{P}(s) = \left(\frac{k_p s + k_I}{s}\right) \left(\frac{-k\omega_c}{s + \omega_c}\right)
+\end{equation}
+
+By choosing $k_p$ and $k_I$ appropriately (as in equation 12 of the paper):
+
+\begin{equation}
+k_I = \frac{\omega_{BW}}{k}, \quad k_p = \frac{k_I}{\omega_c}
+\end{equation}
+
+The controller cancels the pole at $s = -\omega_c$, yielding:
+
+\begin{equation}
+C(s)\hat{P}(s) = \frac{-\omega_{BW}}{s}
+\end{equation}
+
+This is a simple integrator with bandwidth $\omega_{BW}$.
+
+\section{Benefits of Pole-Zero Cancellation}
+
+\subsection{Simplified Open-Loop Transfer Function}
+
+Before cancellation:
+\begin{equation}
+C(s)\hat{P}(s) = \frac{\omega_{BW}(s + \omega_c)}{k\omega_c \cdot s} \cdot \frac{-k\omega_c}{s + \omega_c}
+\end{equation}
+
+After cancellation:
+\begin{equation}
+C(s)\hat{P}(s) = \frac{-\omega_{BW}}{s}
+\end{equation}
+
+This is a pure integrator.
+
+\subsection{Predictable Closed-Loop Behavior}
+
+\begin{equation}
+T(s) = \frac{C(s)\hat{P}(s)}{1 + C(s)\hat{P}(s)} = \frac{-\omega_{BW}}{s - \omega_{BW}}
+\end{equation}
+
+Properties:
 \begin{itemize}
-\item high phase sensitivity,
-\item wide linear operating range,
-\item robustness to amplitude fluctuations,
-\item improved noise performance,
-\item direct frequency discrimination capability,
-\item and low implementation complexity.
+    \item Time constant: $\tau = 1/\omega_{BW}$
+    \item No overshoot
+    \item No oscillations
 \end{itemize}
 
-These advantages make the proposed detector particularly suitable for phase- and frequency-based sensing and communication systems.
-
-\section{Comparison with Arctangent-Based Phase Estimation}
-
-Phase estimation can also be achieved using arctangent-based methods, which explicitly compute the phase from in-phase and quadrature components. This section compares the proposed $T/4$ delay with $\pi/4$ phase bias detector to conventional arctangent-based phase estimation in terms of sensitivity, linearity, noise robustness, and implementation complexity.
-
-\subsection{Principle of Arctangent-Based Phase Estimation}
-
-In arctangent-based phase estimation, the received signal is first converted into its in-phase and quadrature components:
-\begin{equation}
-I(t) = A\cos\phi(t), \quad Q(t) = A\sin\phi(t).
-\end{equation}
-
-The instantaneous phase is then obtained as
-\begin{equation}
-\hat{\phi}(t) = \tan^{-1}\!\left(\frac{Q(t)}{I(t)}\right).
-\end{equation}
-
-While this approach provides a direct phase estimate, it requires precise quadrature generation, division, and arctangent operations, which increase computational complexity and sensitivity to noise and amplitude imbalance.
-
----
-
-\subsection{Sensitivity and Linearity}
-
-The proposed detector produces a low-pass output of the form
-\begin{equation}
-\text{Output} \propto \cos\!\left(\frac{\pi}{4}-\Delta\phi\right),
-\end{equation}
-which can be linearized for small phase variations as
-\begin{equation}
-\text{Output} \approx \frac{\sqrt{2}}{2} + \frac{\sqrt{2}}{2}\Delta\phi.
-\end{equation}
-
-In contrast, the arctangent method exhibits a nonlinear response to noise due to the ratio $Q/I$, particularly when $I$ is small. The proposed detector avoids explicit division and maintains a well-defined linear operating region around the $\pi/4$ bias point, resulting in improved small-signal sensitivity.
-
----
-
-\subsection{Noise Robustness}
-
-In arctangent-based estimation, noise affects both $I$ and $Q$ components, and the nonlinear $\tan^{-1}(\cdot)$ operation can significantly amplify noise, especially near quadrant boundaries. Additionally, phase unwrapping is often required to maintain continuity.
-
-The proposed detector relies on multiplication and low-pass filtering, which naturally suppress high-frequency noise components. By operating away from the extrema of the cosine response, the $\pi/4$ bias point ensures that noise-induced phase fluctuations translate into proportional output variations, enhancing robustness in low-SNR conditions.
-
----
-
-\subsection{Amplitude Sensitivity}
-
-Arctangent-based methods assume accurate amplitude matching between the $I$ and $Q$ channels. Any gain mismatch or amplitude fading can introduce phase estimation errors.
-
-In contrast, the $T/4$ delay-based detector exhibits reduced sensitivity to amplitude variations because the two signal paths originate from the same signal and differ only by delay and phase bias. Common-mode amplitude fluctuations therefore largely cancel out, making the detector more robust to gain variations and fading.
-
----
-
-\subsection{Computational and Implementation Complexity}
-
-Arctangent-based phase estimation requires:
-\begin{itemize}
-\item precise quadrature signal generation,
-\item division operations,
-\item arctangent computation,
-\item phase unwrapping logic.
-\end{itemize}
-
-These operations are computationally expensive and challenging to implement efficiently in fixed-point hardware.
-
-The proposed detector, by contrast, requires only:
-\begin{itemize}
-\item a fixed $T/4$ delay,
-\item a constant phase bias,
-\item a single multiplier,
-\item and a low-pass filter.
-\end{itemize}
-
-No transcendental functions are required, making the detector highly suitable for real-time implementation in DSPs, FPGAs, and software-in-the-loop (SIL) environments.
-
----
-
-\subsection{Summary of Comparison}
-
-Table~\ref{tab:comparison_phase_detectors} summarizes the key differences between the proposed detector and arctangent-based phase estimation.
+\subsection{Guaranteed Stability Margins}
 
 \begin{table}[h]
 \centering
-\caption{Comparison of Phase Estimation Methods}
-\label{tab:comparison_phase_detectors}
 \begin{tabular}{lcc}
-\hline
-\textbf{Aspect} & \textbf{Proposed Method} & \textbf{Arctangent-Based} \\
-\hline
-Phase sensitivity & High (linear near $\pi/4$) & High but nonlinear \\
-Noise robustness & High & Moderate \\
-Amplitude robustness & High & Sensitive to imbalance \\
-Computational complexity & Low & High \\
-Hardware suitability & Excellent & Limited \\
-Phase unwrapping required & No & Yes \\
-\hline
+\toprule
+\textbf{Metric} & \textbf{Value} & \textbf{Quality} \\
+\midrule
+Phase Margin & $90°$ & Excellent \\
+Gain Margin & $\infty$ & Excellent \\
+Crossover Frequency & $\omega_{BW}$ & Controllable \\
+\bottomrule
 \end{tabular}
 \end{table}
 
-Overall, the proposed $T/4$ delay with $\pi/4$ phase bias detector provides a favorable trade-off between sensitivity, robustness, and implementation efficiency, making it particularly attractive for practical phase- and frequency-based sensing systems.
+\subsection{Zero Steady-State Error}
 
-
-\section{Limitation of the Sensing Range in SIL Radar}
-
-In a software-in-the-loop (SIL) radar, the Doppler-induced phase shift of the received echo is actively canceled by introducing a tunable delay in the received signal path. By adjusting this delay, the SIL radar effectively eliminates the apparent phase variation of the echo, making the radar perceive a stationary target. This process is conceptually equivalent to electronically moving the radar in synchrony with the target motion. As a result, the target displacement can be directly extracted from the applied delay required to cancel the Doppler phase shift.
-
-Although this approach removes the conventional $2\pi$ phase ambiguity, experimental results indicate that the linear sensing range is limited to approximately 14 wavelengths when the total harmonic distortion (THD) is constrained below 2.3\%. This section explains the origin of this limitation from both a system-level and a mathematical perspective.
-
-\subsection{General System-Level Explanation}
-
-In principle, delay-based Doppler cancellation allows the sensing range to exceed the sub-wavelength limitation of conventional phase-based radar systems. However, in practical implementations, the tunable delay is neither continuous nor unbounded. Several non-ideal factors limit the achievable sensing range.
-
-First, the dynamic range of the tunable delay is finite, as it is typically implemented using digital delay lines, buffers, or fractional-delay filters. Once the required compensation delay exceeds this range, further Doppler cancellation becomes infeasible.
-
-Second, and more critically, the delay resolution is finite. The minimum achievable delay step introduces a residual phase error, which accumulates as the displacement amplitude increases. This accumulated phase error manifests as nonlinear distortion in the extracted displacement signal, leading to increased harmonic content.
-
-Finally, the SIL radar operates as a closed-loop system. As the target displacement grows, the corresponding Doppler phase rate increases, placing higher demands on the loop bandwidth and stability. Finite loop bandwidth and processing latency introduce phase lag, further degrading the accuracy of phase cancellation and contributing to nonlinearity.
-
-Consequently, the reported sensing range of 14 wavelengths corresponds to the maximum displacement over which the combined effects of delay quantization, loop dynamics, and noise still allow highly linear operation.
-
-\subsection{Mathematical Analysis of the Limitation}
-
-The Doppler-induced phase of the received echo due to a target displacement $x(t)$ is given by
+For step disturbance:
 \begin{equation}
-\phi(t) = \frac{4\pi}{\lambda} x(t),
-\end{equation}
-where $\lambda$ denotes the carrier wavelength.
-
-In the SIL radar, a tunable delay $d(t)$ is introduced to cancel this phase variation. The phase shift introduced by the delay is
-\begin{equation}
-\phi_d(t) = \omega_c d(t),
-\end{equation}
-where $\omega_c$ is the carrier angular frequency. Doppler cancellation is achieved by enforcing
-\begin{equation}
-\phi(t) - \phi_d(t) \approx 0,
-\end{equation}
-which yields
-\begin{equation}
-d(t) \approx \frac{4\pi}{\omega_c \lambda} x(t).
+e_{ss} = \lim_{s \to 0} \frac{s}{s + \omega_{BW}} = 0
 \end{equation}
 
-Using $\omega_c = 2\pi c / \lambda$, the delay-to-displacement relationship simplifies to
+\subsection{Single Design Parameter}
+
+Only $\omega_{BW}$ needs to be chosen:
+\begin{itemize}
+    \item Faster response $\rightarrow$ increase $\omega_{BW}$
+    \item More stability $\rightarrow$ decrease $\omega_{BW}$
+\end{itemize}
+
+\subsection{Comparison Table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Aspect} & \textbf{Without} & \textbf{With} \\
+\midrule
+Open-loop order & Higher & 1st order \\
+Design parameters & Multiple & Single \\
+Phase margin & Varies & $90°$ \\
+Gain margin & Varies & $\infty$ \\
+Steady-state error & Non-zero & Zero \\
+Tuning complexity & High & Low \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Starting Equations}
+
+\subsection{PI Controller}
 \begin{equation}
-\label{eq:delay_displacement}
-\boxed{
-d(t) \approx \frac{2}{c} x(t)
-}
+C(s) = k_p + \frac{k_I}{s} = \frac{k_p s + k_I}{s}
 \end{equation}
-indicating that the tunable delay is directly proportional to the physical displacement.
 
-In practice, the implemented delay contains a quantization error:
+\subsection{First-Order Plant Approximation}
 \begin{equation}
-d(t) = \hat{d}(t) + \varepsilon_d(t),
+\hat{P}(s) = \frac{-k\omega_c}{s + \omega_c}
 \end{equation}
-which results in a residual phase error
+
+\subsection{Controller Gains}
 \begin{equation}
-\varepsilon_\phi(t)
-= \omega_c \varepsilon_d(t)
-= \frac{4\pi}{\lambda} \varepsilon_d(t).
+k_I = \frac{\omega_{BW}}{k}, \quad k_p = \frac{k_I}{\omega_c}
 \end{equation}
 
-For a harmonic displacement
+\section{Derivation}
+
+\subsection{Step 1: Express $k_p$ in Terms of $\omega_{BW}$}
+
 \begin{equation}
-x(t) = A \sin(\Omega t),
+k_p = \frac{k_I}{\omega_c} = \frac{\omega_{BW}}{k \cdot \omega_c}
 \end{equation}
-the residual phase error introduces nonlinear distortion components in the recovered displacement signal. The resulting total harmonic distortion can be approximated as
+
+\subsection{Step 2: Substitute into $C(s)$}
+
 \begin{equation}
-\text{THD} \propto
-\left( \frac{4\pi A}{\lambda} \right)^n \varepsilon_d,
-\quad n \geq 2.
+C(s) = \frac{k_p s + k_I}{s} = \frac{\frac{\omega_{BW}}{k\omega_c} s + \frac{\omega_{BW}}{k}}{s}
 \end{equation}
 
-As the displacement amplitude $A$ increases, the required delay swing grows proportionally, amplifying the effect of delay quantization and loop-induced phase errors. Consequently, the nonlinear distortion increases rapidly with displacement amplitude.
+Factor out $\frac{\omega_{BW}}{k\omega_c}$:
 
-\subsection{Discussion and Interpretation}
-
-The experimentally observed sensing range of 14 wavelengths corresponds to the maximum displacement amplitude for which the accumulated phase error remains sufficiently small to maintain a total harmonic distortion below 2.3\%. This limit is therefore not a fundamental physical constraint, but rather an engineering limit imposed by the finite delay resolution, dynamic range, and loop stability of the SIL radar implementation.
-
-\subsection{Summary}
-
-In summary, while delay-based Doppler cancellation in SIL radar removes the traditional $2\pi$ phase ambiguity and enables wide-range displacement sensing, the achievable linear sensing range is ultimately constrained by practical implementation factors. In the reported system, these factors limit the highly linear sensing range to approximately 14 wavelengths, within which excellent linearity and low harmonic distortion are maintained.
-
-
-\section{Negative Frequency Considerations in Mixing: Mechanical Waves versus Electromagnetic Waves}
-
-\subsection{Concept of Negative Frequency}
-
-Negative frequency is a mathematical concept that arises naturally when signals are represented using complex exponentials. A real-valued sinusoidal signal can be expressed as
 \begin{equation}
-\cos(\omega t)
-=
-\frac{1}{2}
-\left(
-e^{j\omega t}
-+
-e^{-j\omega t}
-\right),
+C(s) = \frac{\frac{\omega_{BW}}{k\omega_c}(s + \omega_c)}{s} = \frac{\omega_{BW}(s + \omega_c)}{k\omega_c \cdot s}
 \end{equation}
-where the terms $e^{j\omega t}$ and $e^{-j\omega t}$ correspond to positive and negative frequency components, respectively. Physically, negative frequency does not represent a wave propagating in the opposite spatial direction, but rather a phase rotation in the opposite temporal direction within the complex representation.
 
-\subsection{Mechanical Waves and Real-Valued Signal Representation}
+\subsection{Step 3: Multiply $C(s) \cdot \hat{P}(s)$}
 
-Mechanical waves such as acoustic signals are inherently real-valued. Let $x(t)\in\mathbb{R}$ denote a measured acoustic pressure waveform. Its Fourier transform satisfies the conjugate symmetry property
 \begin{equation}
-X(-f) = X^{*}(f),
+C(s)\hat{P}(s) = \frac{\omega_{BW}(s + \omega_c)}{k\omega_c \cdot s} \cdot \frac{-k\omega_c}{s + \omega_c}
 \end{equation}
-which implies that positive and negative frequency components always appear as symmetric pairs.
 
-As a consequence, negative frequencies in mechanical waves cannot be independently manipulated or observed. They are intrinsically linked to their positive-frequency counterparts and therefore do not require explicit consideration in most acoustic signal processing applications.
+\subsection{Step 4: Cancel Common Terms}
 
-\subsection{Effect of Mixing on Mechanical Waves}
-
-Mixing is performed through multiplication in the time domain. For an acoustic signal mixed with a real-valued local oscillator,
 \begin{equation}
-y(t) = x(t)\cos(\omega_0 t),
+C(s)\hat{P}(s) = \frac{\omega_{BW} \cdot \cancel{(s + \omega_c)} \cdot (-\cancel{k}\cancel{\omega_c})}{\cancel{k}\cancel{\omega_c} \cdot s \cdot \cancel{(s + \omega_c)}}
 \end{equation}
-the resulting frequency components are shifted to
+
+\subsection{Step 5: Final Result}
+
 \begin{equation}
-\pm(\omega \pm \omega_0),
+\boxed{C(s)\hat{P}(s) = \frac{-\omega_{BW}}{s}}
 \end{equation}
-where both positive and negative frequencies are translated symmetrically. Since the spectrum remains conjugate symmetric, no image-frequency ambiguity arises that would require separate handling of negative frequencies.
 
-Therefore, in conventional acoustic signal processing, the effect of negative frequencies during mixing is implicitly accounted for and does not necessitate special treatment.
+\section{Key Insight: Pole-Zero Cancellation}
 
-\subsection{Contrast with Complex Baseband Processing in RF Systems}
+The PI controller is designed to cancel the plant pole:
 
-In radio-frequency (RF) and radar systems, signals are often represented using complex baseband (IQ) notation. Complex mixing is performed using
+\begin{itemize}
+    \item Plant pole at: $s = -\omega_c$
+    \item Controller zero at: $s = -\frac{k_I}{k_p} = -\omega_c$
+\end{itemize}
+
+Verification:
 \begin{equation}
-y(t) = x(t)e^{-j\omega_0 t},
+\text{Controller zero} = -\frac{k_I}{k_p} = -\frac{\omega_{BW}/k}{\omega_{BW}/(k\omega_c)} = -\omega_c \quad \checkmark
 \end{equation}
-which shifts the spectrum asymmetrically. In this case, positive- and negative-frequency components are no longer constrained to be symmetric, and negative frequencies correspond to physically meaningful opposite phase rotations.
 
-As a result, careful consideration of negative frequencies is essential in RF and radar systems to avoid image-frequency interference and to preserve Doppler sign information.
+\section{Physical Interpretation}
 
-\subsection{When Negative Frequencies Matter in Mechanical Wave Processing}
+The open-loop transfer function $C(s)\hat{P}(s) = \frac{-\omega_{BW}}{s}$ is a pure integrator with gain $\omega_{BW}$.
 
-Negative frequency considerations become relevant in mechanical wave processing only when complex analytic representations are intentionally introduced. An analytic signal can be constructed as
-\begin{equation}
-x_a(t) = x(t) + j\mathcal{H}\{x(t)\},
-\end{equation}
-where $\mathcal{H}\{\cdot\}$ denotes the Hilbert transform. This representation suppresses negative-frequency components and enables complex mixing behavior analogous to RF systems.
-
-Such representations are employed in advanced acoustic applications including direction-of-arrival estimation, Doppler-based acoustic sensing, and array signal processing.
-
-\subsection{Summary}
-
-In summary, mechanical waves such as acoustic signals inherently contain both positive and negative frequency components due to their real-valued nature. However, these components are mathematically coupled and do not require explicit treatment in conventional mixing operations. In contrast, RF and radar systems employing complex baseband processing must explicitly account for negative frequencies, as they carry physically meaningful information related to phase rotation and Doppler direction.
-
+\begin{itemize}
+    \item At $\omega = \omega_{BW}$: $|C(j\omega)\hat{P}(j\omega)| = 1$ (unity gain crossover)
+    \item Phase: $-90°$ (constant, from integrator)
+    \item Phase margin: $90°$ (ideal)
+\end{itemize}
 \end{document}

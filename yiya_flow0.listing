@@ -1,0 +1,17 @@
+假設 reslen=8, 4 個執行緒
+
+時間 →
+────────────────────────────────────────────────────────
+t=0  所有執行緒創建 ThreadBuffer
+ ├─ 執行緒 1: malloc Ure, Uim, Vre, Vim, S, mag181
+ ├─ 執行緒 2: malloc Ure, Uim, Vre, Vim, S, mag181
+ ├─ 執行緒 3: malloc Ure, Uim, Vre, Vim, S, mag181
+ └─ 執行緒 4: malloc Ure, Uim, Vre, Vim, S, mag181
+
+t=1  barrier - 等待所有執行緒完成分配
+t=2  開始並行處理 (動態調度)
+t=10 執行緒 3 完成 r=7 (最後一個)
+     critical 區域: 保存 U_last, V_last, S_last
+t=11 隱含 barrier
+t=12 釋放 ThreadBuffer
+t=13 主執行緒返回結果
