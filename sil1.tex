@@ -2751,4 +2751,662 @@ $\frac{e^{-\tau s}}{s^2}$ & $\frac{1}{\omega^2}$ (fast decreasing) & Fast inward
 \end{tabular}
 \caption{Summary of different transfer functions and their Nyquist plots.}
 \end{table}
+
+% =============================================================================
+\section{Block Diagram Analysis}
+% =============================================================================
+
+\subsection{Signal Flow in the Control System}
+
+% TikZ: Main Block Diagram
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    block/.style={rectangle, draw=black, line width=1.5pt, minimum width=1.5cm, 
+                  minimum height=1cm, font=\large},
+    sum/.style={circle, draw=black, line width=1.5pt, minimum size=0.8cm},
+    arrow/.style={-{Stealth[length=3mm, width=2mm]}, line width=1.2pt},
+    label/.style={font=\large}
+]
+
+    % Disturbance input
+    \node[label, red] (dist) at (6.5, 3) {$\Delta D$};
+    \node[font=\small, red, align=center] at (6.5, 3.8) {Disturbance\\(round-trip delay)};
+    
+    % Omega_n block
+    \node[block, fill=red!15] (wn) at (6.5, 1.5) {$\omega_n$};
+    
+    % Sum for disturbance
+    \node[sum] (sum2) at (6.5, 0) {};
+    \node[font=\small] at (6.15, 0.35) {$+$};
+    \node[font=\small] at (6.9, 0.35) {$+$};
+    
+    % Reference input
+    \node[label] (input) at (0, 0) {$r$};
+    \node[font=\small, below] at (0, -0.3) {$(=0)$};
+    
+    % Error sum
+    \node[sum] (sum1) at (2, 0) {};
+    \node[font=\small] at (1.65, 0.35) {$+$};
+    \node[font=\small] at (1.65, -0.4) {$-$};
+    
+    % Controller
+    \node[block, fill=orange!20] (C) at (4.5, 0) {$C$};
+    \node[font=\small, above] at (4.5, 0.7) {Controller};
+    
+    % Plant
+    \node[block, fill=green!20] (P) at (9, 0) {$P$};
+    \node[font=\small, above] at (9, 0.7) {Plant};
+    
+    % Output
+    \node[label] (output) at (12, 0) {$\theta$};
+    \node[font=\small, below] at (12, -0.3) {(phase)};
+    
+    % Forward path arrows
+    \draw[arrow] (input) -- (sum1);
+    \draw[arrow] (sum1) -- (C) node[midway, above] {$e$};
+    \draw[arrow] (C) -- (sum2) node[midway, above] {$d$};
+    \draw[arrow, red] (dist) -- (wn);
+    \draw[arrow, red] (wn) -- (sum2) node[midway, right, red, font=\small] {$\omega_n \Delta D$};
+    \draw[arrow] (sum2) -- (P);
+    \draw[arrow] (P) -- (output);
+    
+    % Feedback path
+    \draw[line width=1.2pt] (11, 0) -- (11, -2) -- (2, -2);
+    \draw[arrow] (2, -2) -- (sum1);
+    \node[label] at (6.5, -2.4) {$w = \theta$};
+    \node[font=\small] at (6.5, -2.9) {(feedback)};
+
+\end{tikzpicture}
+\caption{Block diagram of the SIL radar control system with disturbance input.}
+\end{figure}
+
+\subsection{Signal Definitions}
+
+\begin{table}[h]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{cll}
+\toprule
+\textbf{Signal} & \textbf{Symbol} & \textbf{Physical Meaning} \\
+\midrule
+Reference & $r$ & Desired phase (set to 0) \\
+Error & $e$ & Phase error signal \\
+Control output & $d$ & Tunable delay adjustment \\
+Disturbance & $\Delta D$ & Round-trip delay change from target motion \\
+Output & $\theta$ & Actual phase \\
+Feedback & $w$ & Measured phase (= $\theta$) \\
+\bottomrule
+\end{tabular}
+\caption{Signal definitions in the control system.}
+\end{table}
+
+% =============================================================================
+\section{System Equations}
+% =============================================================================
+
+From the block diagram, we can write the following equations:
+
+\subsection{Basic Signal Relationships}
+
+\begin{align}
+e &= r - w \label{eq:error}\\
+d &= C \cdot e \label{eq:controller}\\
+\theta &= P \cdot (d + \omega_n \Delta D) \label{eq:plant}\\
+w &= \theta \label{eq:feedback}
+\end{align}
+
+% TikZ: Signal Flow Visualization
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    box/.style={rectangle, draw=black, line width=1.5pt, rounded corners=5pt,
+                minimum width=10cm, minimum height=1.2cm, fill=blue!5},
+    arrow/.style={-{Stealth[length=4mm, width=3mm]}, line width=1.5pt}
+]
+
+    % Equation 1
+    \node[box] (eq1) at (0, 4.5) {};
+    \node[font=\Large] at (-3, 4.5) {$e = r - w$};
+    \node[font=\normalsize, align=left] at (2.5, 4.5) {Error = Reference $-$ Feedback};
+    
+    % Equation 2
+    \node[box] (eq2) at (0, 3) {};
+    \node[font=\Large] at (-3, 3) {$d = C \cdot e$};
+    \node[font=\normalsize, align=left] at (2.5, 3) {Controller output = Controller $\times$ Error};
+    
+    % Equation 3
+    \node[box, fill=yellow!10] (eq3) at (0, 1.5) {};
+    \node[font=\Large] at (-3, 1.5) {$\theta = P \cdot (d + \omega_n \Delta D)$};
+    \node[font=\normalsize, align=left] at (2.5, 1.5) {Phase = Plant $\times$ (Control + Disturbance)};
+    
+    % Equation 4
+    \node[box] (eq4) at (0, 0) {};
+    \node[font=\Large] at (-3, 0) {$w = \theta$};
+    \node[font=\normalsize, align=left] at (2.5, 0) {Feedback = Output phase};
+    
+    % Arrows showing flow
+    \draw[arrow, blue] (eq1.south) -- (eq2.north);
+    \draw[arrow, blue] (eq2.south) -- (eq3.north);
+    \draw[arrow, blue] (eq4.north) -- (eq3.south);
+    
+    % Key equation highlight
+    \node[font=\large, red] at (6, 1.5) {$\leftarrow$ Key equation!};
+
+\end{tikzpicture}
+\caption{System equations derived from the block diagram.}
+\end{figure}
+
+\subsection{Why $\theta = P \cdot (d + \omega_n \Delta D)$?}
+
+This equation comes from the \textbf{physics of the system}:
+
+% TikZ: Physical Interpretation
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    block/.style={rectangle, draw=black, line width=1.5pt, rounded corners=5pt,
+                  minimum width=3.5cm, minimum height=1.5cm, font=\large, align=center},
+    arrow/.style={-{Stealth[length=4mm, width=3mm]}, line width=1.5pt}
+]
+
+    % Total delay
+    \node[block, fill=cyan!20] (delay) at (0, 0) {Total Delay\\$D_{total}$};
+    
+    % Components
+    \node[block, fill=green!20] (d) at (-4, 2.5) {Tunable Delay\\$d$};
+    \node[block, fill=red!20] (deltaD) at (4, 2.5) {Target Motion\\$\Delta D$};
+    
+    % Conversion to phase
+    \node[block, fill=orange!20] (phase) at (0, -3) {Phase\\$\theta = \omega_n \cdot D_{total}$};
+    
+    % Arrows
+    \draw[arrow] (d.south) -- (-2, 0.9) -- (delay.north west);
+    \draw[arrow] (deltaD.south) -- (2, 0.9) -- (delay.north east);
+    \draw[arrow] (delay.south) -- (phase.north);
+    
+    % Plus signs
+    \node[font=\Huge] at (0, 1.5) {$+$};
+    
+    % Labels
+    \node[font=\normalsize] at (-4, 1.2) {Controller adjusts};
+    \node[font=\normalsize] at (4, 1.2) {Disturbance};
+    \node[font=\normalsize] at (2.5, -1.5) {$\times \omega_n$};
+    
+    % Final equation
+    \node[draw, fill=yellow!20, rounded corners, font=\large, line width=1.5pt] at (0, -5.5) {
+        $D_{total} = d + \Delta D \quad \Rightarrow \quad \theta = P \cdot (d + \omega_n \Delta D)$
+    };
+
+\end{tikzpicture}
+\caption{Physical interpretation: both control and disturbance affect the total delay.}
+\end{figure}
+
+The phase $\theta$ depends on the \textbf{total round-trip delay}:
+\begin{equation}
+\theta = \omega_n \times (\text{total delay}) = \omega_n (D_0 + d + \Delta D)
+\end{equation}
+
+At the operating point, $\omega_n D_0 = \pi$, so the deviation is:
+\begin{equation}
+\theta - \pi = \omega_n (d + \Delta D)
+\end{equation}
+
+Through the SIL dynamics (plant $P$):
+\begin{equation}
+\boxed{\theta = P \cdot (d + \omega_n \Delta D)}
+\end{equation}
+
+% =============================================================================
+\section{Derivation of Transfer Function}
+% =============================================================================
+
+\subsection{Step-by-Step Derivation}
+
+% TikZ: Derivation Steps
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    stepbox/.style={rectangle, draw=black, line width=1pt, rounded corners=3pt,
+                    minimum width=12cm, minimum height=1.5cm, fill=gray!5},
+    arrow/.style={-{Stealth[length=3mm, width=2mm]}, line width=1.2pt}
+]
+
+    % Step 1
+    \node[stepbox] (s1) at (0, 6) {};
+    \node[font=\large\bfseries, blue] at (-5, 6) {Step 1:};
+    \node[font=\large] at (1.5, 6) {Start with $e = r - w = r - \theta$};
+    
+    % Step 2
+    \node[stepbox] (s2) at (0, 4.2) {};
+    \node[font=\large\bfseries, blue] at (-5, 4.2) {Step 2:};
+    \node[font=\large] at (1.5, 4.2) {Substitute $\theta = P(d + \omega_n \Delta D)$};
+    
+    % Step 3
+    \node[stepbox] (s3) at (0, 2.4) {};
+    \node[font=\large\bfseries, blue] at (-5, 2.4) {Step 3:};
+    \node[font=\large] at (1.5, 2.4) {Substitute $d = Ce$};
+    
+    % Step 4
+    \node[stepbox] (s4) at (0, 0.6) {};
+    \node[font=\large\bfseries, blue] at (-5, 0.6) {Step 4:};
+    \node[font=\large] at (1.5, 0.6) {Rearrange and solve for $e$};
+    
+    % Step 5
+    \node[stepbox, fill=green!10] (s5) at (0, -1.2) {};
+    \node[font=\large\bfseries, blue] at (-5, -1.2) {Step 5:};
+    \node[font=\large] at (1.5, -1.2) {Set $r = 0$ to get final result};
+    
+    % Arrows
+    \draw[arrow] (s1.south) -- (s2.north);
+    \draw[arrow] (s2.south) -- (s3.north);
+    \draw[arrow] (s3.south) -- (s4.north);
+    \draw[arrow] (s4.south) -- (s5.north);
+
+\end{tikzpicture}
+\caption{Step-by-step derivation procedure.}
+\end{figure}
+
+\textbf{Step 1:} Start with the error equation
+\begin{equation}
+e = r - w = r - \theta
+\end{equation}
+
+\textbf{Step 2:} Substitute $\theta = P(d + \omega_n \Delta D)$
+\begin{equation}
+e = r - P(d + \omega_n \Delta D) = r - Pd - P\omega_n \Delta D
+\end{equation}
+
+\textbf{Step 3:} Substitute $d = Ce$
+\begin{equation}
+e = r - P(Ce) - P\omega_n \Delta D = r - PCe - P\omega_n \Delta D
+\end{equation}
+
+\textbf{Step 4:} Rearrange
+\begin{equation}
+e + PCe = r - P\omega_n \Delta D
+\end{equation}
+\begin{equation}
+e(1 + PC) = r - P\omega_n \Delta D
+\end{equation}
+
+\textbf{Step 5:} Solve for $e$ with $r = 0$
+\begin{equation}
+e = \frac{-P\omega_n \Delta D}{1 + PC}
+\end{equation}
+
+\textbf{Wait!} This gives $1 + PC$, but the paper has $1 - PC$. Why?
+
+% =============================================================================
+\section{The Sign Convention: Why $1 - PC$?}
+% =============================================================================
+
+\subsection{The Plant Has Negative Gain}
+
+From \textbf{equation (9)} in the paper:
+\begin{equation}
+P(s) = \underbrace{-k}_{\text{negative!}} \cdot e^{-\frac{T}{8}s} \cdot F(s)
+\end{equation}
+
+% TikZ: Negative Gain Explanation
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    block/.style={rectangle, draw=black, line width=1.5pt, minimum width=3cm, 
+                  minimum height=1.2cm, font=\large},
+    arrow/.style={-{Stealth[length=3mm, width=2mm]}, line width=1.2pt}
+]
+
+    % Plant decomposition
+    \node[font=\Large\bfseries] at (0, 3) {Plant Transfer Function};
+    
+    \node[block, fill=red!20] (neg) at (-3, 1) {$-k$};
+    \node[font=\small, below] at (-3, 0.2) {Negative gain};
+    
+    \node[block, fill=blue!20] (delay) at (0, 1) {$e^{-\frac{T}{8}s}$};
+    \node[font=\small, below] at (0, 0.2) {Time delay};
+    
+    \node[block, fill=green!20] (filter) at (3, 1) {$F(s)$};
+    \node[font=\small, below] at (3, 0.2) {Filter};
+    
+    % Multiplication signs
+    \node[font=\Huge] at (-1.5, 1) {$\times$};
+    \node[font=\Huge] at (1.5, 1) {$\times$};
+    
+    % Result
+    \node[draw, fill=yellow!20, rounded corners, font=\Large, line width=1.5pt] at (0, -1.5) {
+        $P(s) = -k \cdot e^{-\frac{T}{8}s} \cdot F(s)$
+    };
+    
+    % Highlight
+    \draw[red, line width=2pt, ->] (-3, 0) -- (-3, -0.8) -- (-1.5, -0.8);
+    \node[red, font=\normalsize, align=center] at (-4.5, -0.5) {This negative\\sign is key!};
+
+\end{tikzpicture}
+\caption{The plant has a negative gain due to anti-phase operation.}
+\end{figure}
+
+\subsection{Why is the Gain Negative?}
+
+% TikZ: Anti-phase Mode Explanation
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    arrow/.style={-{Stealth[length=3mm, width=2mm]}, line width=1.2pt}
+]
+
+    % Axes for gain curve
+    \draw[arrow] (-0.5, 0) -- (10, 0) node[right, font=\large] {$\theta$};
+    \draw[arrow] (0, -2.5) -- (0, 2.5) node[above, font=\large] {Plant Gain $g(\theta)$};
+    
+    % Gain curve (cosine-like)
+    \draw[line width=2.5pt, blue] plot[smooth, domain=0.3:9.5, samples=100] 
+        (\x, {2*cos((\x-5)*36)});
+    
+    % Zero line
+    \draw[dashed, gray, line width=1pt] (0, 0) -- (9.5, 0);
+    
+    % Operating point at θ = π
+    \fill[red] (5, -2) circle (0.15);
+    \draw[red, line width=2pt, dashed] (5, 0) -- (5, -2);
+    
+    % Labels
+    \node[below] at (2.5, 0) {$\frac{\pi}{2}$};
+    \node[below] at (5, 0) {$\pi$};
+    \node[below] at (7.5, 0) {$\frac{3\pi}{2}$};
+    
+    % Annotations
+    \node[red, font=\large] at (5, -2.8) {Operating point: $\theta = \pi$};
+    \node[red, font=\normalsize] at (5, -3.4) {(Anti-phase mode)};
+    
+    % Gain value annotation
+    \draw[arrow, red] (6.5, -2) -- (5.3, -2);
+    \node[red, font=\large, align=center] at (8, -2) {$g(\pi) = -k$\\(negative!)};
+    
+    % Positive region
+    \node[blue, font=\normalsize] at (2.5, 2.3) {$g > 0$};
+    \node[blue, font=\normalsize] at (7.5, 2.3) {$g > 0$};
+    
+    % Negative region
+    \node[blue, font=\normalsize] at (5, -1) {$g < 0$};
+
+\end{tikzpicture}
+\caption{At the operating point $\theta = \pi$, the plant gain is negative.}
+\end{figure}
+
+The system operates in \textbf{anti-phase mode} ($\theta = \pi$) where:
+\begin{itemize}
+    \item The plant gain $g(\theta, A_{inj})$ is \textbf{negative}
+    \item This provides better linearity and stability
+    \item The negative gain means: increasing delay $\rightarrow$ decreasing phase
+\end{itemize}
+
+\subsection{Correcting the Derivation}
+
+Let's write $P = -|P|$ explicitly (negative plant):
+
+\textbf{Step 1:} With explicit negative sign
+\begin{equation}
+\theta = P(d + \omega_n \Delta D) = (-|P|)(d + \omega_n \Delta D)
+\end{equation}
+
+\textbf{Step 2:} Error equation
+\begin{equation}
+e = r - \theta = r - (-|P|)(d + \omega_n \Delta D) = r + |P|(d + \omega_n \Delta D)
+\end{equation}
+
+\textbf{Step 3:} Expand
+\begin{equation}
+e = r + |P|d + |P|\omega_n \Delta D = r + |P|Ce + |P|\omega_n \Delta D
+\end{equation}
+
+\textbf{Step 4:} Rearrange
+\begin{equation}
+e - |P|Ce = r + |P|\omega_n \Delta D
+\end{equation}
+\begin{equation}
+e(1 - |P|C) = r + |P|\omega_n \Delta D
+\end{equation}
+
+\textbf{Step 5:} Solve for $e$ with $r = 0$
+\begin{equation}
+e = \frac{|P|\omega_n \Delta D}{1 - |P|C}
+\end{equation}
+
+If the paper defines $P$ as the \textbf{positive magnitude}:
+\begin{equation}
+\boxed{e(s) = \frac{P \cdot \omega_n \Delta D(s)}{1 - PC}}
+\end{equation}
+
+Or simplifying at low frequencies where $P \approx 1$:
+\begin{equation}
+\boxed{e(s) = \frac{\omega_n \Delta D(s)}{1 - PC}}
+\end{equation}
+
+% =============================================================================
+\section{Visual Summary of the Derivation}
+% =============================================================================
+
+% TikZ: Complete Derivation Flow
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    box/.style={rectangle, draw=black, line width=1.5pt, rounded corners=5pt,
+                minimum width=6cm, minimum height=1.8cm, align=center},
+    arrow/.style={-{Stealth[length=4mm, width=3mm]}, line width=2pt}
+]
+
+    % Start
+    \node[box, fill=blue!15] (start) at (0, 8) {
+        \textbf{System Equations}\\[0.2cm]
+        $e = r - \theta$\\
+        $\theta = P(d + \omega_n \Delta D)$\\
+        $d = Ce$
+    };
+    
+    % Substitute
+    \node[box, fill=orange!15] (sub) at (0, 4.5) {
+        \textbf{Substitute}\\[0.2cm]
+        $e = r - P(Ce + \omega_n \Delta D)$\\
+        $e = r - PCe - P\omega_n \Delta D$
+    };
+    
+    % Rearrange
+    \node[box, fill=yellow!15] (rearr) at (0, 1) {
+        \textbf{Rearrange}\\[0.2cm]
+        $e(1 + PC) = r - P\omega_n \Delta D$
+    };
+    
+    % Key insight
+    \node[box, fill=red!20] (key) at (8, 4.5) {
+        \textbf{Key Insight}\\[0.2cm]
+        $P = -|P|$ (negative gain)\\[0.1cm]
+        $\therefore 1 + PC = 1 - |P|C$
+    };
+    
+    % Final result
+    \node[box, fill=green!20, minimum height=2.2cm] (result) at (0, -3) {
+        \textbf{Final Result} (with $r = 0$)\\[0.3cm]
+        $\displaystyle e(s) = \frac{\omega_n \Delta D(s)}{1 - PC}$
+    };
+    
+    % Arrows
+    \draw[arrow, blue] (start.south) -- (sub.north);
+    \draw[arrow, orange] (sub.south) -- (rearr.north);
+    \draw[arrow, red] (key.west) -- (rearr.east);
+    \draw[arrow, green!60!black] (rearr.south) -- (result.north);
+
+\end{tikzpicture}
+\caption{Complete derivation flow showing how $1 - PC$ arises from negative plant gain.}
+\end{figure}
+
+% =============================================================================
+\section{Substituting the PI Controller}
+% =============================================================================
+
+The PI controller is:
+\begin{equation}
+C(s) = k_p + \frac{k_I}{s} = \frac{k_p s + k_I}{s}
+\end{equation}
+
+% TikZ: PI Controller Structure
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    block/.style={rectangle, draw=black, line width=1.5pt, minimum width=2cm, 
+                  minimum height=1cm, font=\large},
+    sum/.style={circle, draw=black, line width=1.5pt, minimum size=0.7cm},
+    arrow/.style={-{Stealth[length=3mm, width=2mm]}, line width=1.2pt}
+]
+
+    % Input
+    \node[font=\large] (input) at (0, 0) {$e$};
+    
+    % Branch point
+    \coordinate (branch) at (1.5, 0);
+    
+    % Proportional path
+    \node[block, fill=red!20] (P) at (4, 1.5) {$k_p$};
+    \node[font=\small, above] at (4, 2.2) {Proportional};
+    
+    % Integral path
+    \node[block, fill=green!20] (I) at (4, -1.5) {$\frac{k_I}{s}$};
+    \node[font=\small, below] at (4, -2.2) {Integral};
+    
+    % Sum
+    \node[sum] (sum) at (7, 0) {};
+    \node[font=\small] at (6.6, 0.35) {$+$};
+    \node[font=\small] at (7, -0.5) {$+$};
+    
+    % Output
+    \node[font=\large] (output) at (9, 0) {$d$};
+    
+    % Arrows
+    \draw[arrow] (input) -- (branch);
+    \draw[line width=1.2pt] (branch) -- (1.5, 1.5);
+    \draw[line width=1.2pt] (branch) -- (1.5, -1.5);
+    \draw[arrow] (1.5, 1.5) -- (P);
+    \draw[arrow] (1.5, -1.5) -- (I);
+    \draw[arrow] (P) -- (7, 1.5) -- (sum);
+    \draw[arrow] (I) -- (7, -1.5) -- (sum);
+    \draw[arrow] (sum) -- (output);
+    
+    % Equation
+    \node[draw, fill=yellow!20, rounded corners, font=\Large, line width=1.5pt] at (4, -4) {
+        $C(s) = k_p + \frac{k_I}{s}$
+    };
+
+\end{tikzpicture}
+\caption{PI controller structure.}
+\end{figure}
+
+Substituting into $1 - PC$:
+\begin{align}
+1 - PC &= 1 - P \cdot \left(k_p + \frac{k_I}{s}\right)\\
+&= 1 - k_p P - \frac{k_I P}{s}
+\end{align}
+
+\textbf{Final transfer function:}
+\begin{equation}
+\boxed{e(s) = \frac{\Delta D(s) \omega_n}{1 - PC} = \frac{\Delta D(s) \omega_n}{1 - k_p P - k_I P/s}}
+\end{equation}
+
+This is exactly \textbf{equation (16)} in the paper!
+
+% =============================================================================
+\section{Block Diagram Comparison}
+% =============================================================================
+
+% TikZ: Standard vs This System Comparison
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    block/.style={rectangle, draw=black, line width=1.5pt, minimum width=1.5cm, 
+                  minimum height=1cm, font=\large},
+    sum/.style={circle, draw=black, line width=1.5pt, minimum size=0.7cm},
+    arrow/.style={-{Stealth[length=3mm, width=2mm]}, line width=1.2pt}
+]
+
+    % === Standard Negative Feedback ===
+    \begin{scope}[shift={(0, 3)}]
+        \node[font=\large\bfseries] at (4, 2) {Standard Negative Feedback};
+        \node[font=\normalsize] at (4, 1.4) {(Plant has positive gain)};
+        
+        \node[font=\large] (in1) at (0, 0) {$r$};
+        \node[sum] (s1) at (1.5, 0) {};
+        \node[font=\small] at (1.15, 0.35) {$+$};
+        \node[font=\small] at (1.15, -0.4) {$-$};
+        \node[block, fill=green!20] (g1) at (4, 0) {$+|G|$};
+        \node[font=\large] (out1) at (7, 0) {$y$};
+        
+        \draw[arrow] (in1) -- (s1);
+        \draw[arrow] (s1) -- (g1);
+        \draw[arrow] (g1) -- (out1);
+        \draw[line width=1.2pt] (6, 0) -- (6, -1.2) -- (1.5, -1.2);
+        \draw[arrow] (1.5, -1.2) -- (s1);
+        
+        \node[draw, rounded corners, font=\normalsize] at (10, 0) {$T = \frac{G}{1+G}$};
+    \end{scope}
+    
+    % === This System (Negative Plant Gain) ===
+    \begin{scope}[shift={(0, -1.5)}]
+        \node[font=\large\bfseries] at (4, 2) {This System};
+        \node[font=\normalsize] at (4, 1.4) {(Plant has negative gain)};
+        
+        \node[font=\large] (in2) at (0, 0) {$r$};
+        \node[sum] (s2) at (1.5, 0) {};
+        \node[font=\small] at (1.15, 0.35) {$+$};
+        \node[font=\small] at (1.15, -0.4) {$-$};
+        \node[block, fill=red!20] (g2) at (4, 0) {$-|G|$};
+        \node[font=\large] (out2) at (7, 0) {$y$};
+        
+        \draw[arrow] (in2) -- (s2);
+        \draw[arrow] (s2) -- (g2);
+        \draw[arrow] (g2) -- (out2);
+        \draw[line width=1.2pt] (6, 0) -- (6, -1.2) -- (1.5, -1.2);
+        \draw[arrow] (1.5, -1.2) -- (s2);
+        
+        \node[draw, rounded corners, font=\normalsize] at (10, 0) {$T = \frac{-|G|}{1-|G|}$};
+    \end{scope}
+
+\end{tikzpicture}
+\caption{Comparison: standard feedback vs.\ this system with negative plant gain.}
+\end{figure}
+
+% =============================================================================
+\section{Summary}
+% =============================================================================
+
+\begin{table}[h]
+\centering
+\renewcommand{\arraystretch}{2}
+\begin{tabular}{ll}
+\toprule
+\textbf{Question} & \textbf{Answer} \\
+\midrule
+Why $\theta = P(d + \omega_n \Delta D)$? & Both control and disturbance affect total delay \\
+Why $1 - PC$ instead of $1 + PC$? & Plant $P$ has \textbf{negative gain} in anti-phase mode \\
+Physical meaning & Negative gain: increasing delay $\to$ decreasing phase \\
+\bottomrule
+\end{tabular}
+\caption{Summary of key questions and answers.}
+\end{table}
+
+% TikZ: Final Key Message
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+    \node[draw=black, fill=yellow!20, rounded corners=10pt, line width=2pt, 
+          font=\Large, inner sep=20pt, align=center] at (0, 0) {
+        \textbf{Key Insight}\\[0.3cm]
+        The term $1 - PC$ arises because\\[0.2cm]
+        the plant has \textcolor{red}{\textbf{negative gain}} at $\theta = \pi$\\[0.2cm]
+        $P = -k \cdot e^{-\frac{T}{8}s} \cdot F(s)$
+    };
+\end{tikzpicture}
+\end{figure}
+
+
+
+
 \end{document}
